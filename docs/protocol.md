@@ -1,6 +1,6 @@
 # CCSP (CC Store Protocol)
 
-`CCSP` consists of two different systems,
+`CCSP` will use the channel `100` by default and will consist of two different systems:
 
 1. Discovery System
 2. Storage System
@@ -24,6 +24,7 @@ CCSP MATCH <SERVERNAME>
 ### Servernames
 
 Servernames must follow this format
+
 ```
 SERVERNAME =  SUBDOMAIN "." SUBDOMAIN ("." SUBDOMAIN)
 
@@ -35,11 +36,7 @@ SUBDOMAIN = /[a-zA-Z][a-zA-Z0-9]{2,}/g
 | Predicate           | Definition                                         |
 | :------------------ | :------------------------------------------------- |
 | `NAME=<SERVERNAME>` | Server has the name of <SERVERNAME>                |
-| `MASS`              | Has the ability to store in bulk                   |
-| `CRAFT`             | Can combine items in a crafting grid               |
-| `SMELT`             | Can smelt items in a Furnace                       |
-| `BLAST`             | Can blast items in a Blast Furnace                 |
-| `SMOKE`             | Can smoke items in a Smoker                        |
+| `MASS`              | Has the ability to store an item in bulk           |
 | `SYNTH`             | Able to synthesise items given it has the material |
 
 ## Packets
@@ -51,6 +48,7 @@ CCSP <SERVERNAME> <COMMAND> <ARGUMENTS>
 ```
 
 Consider you have a server called `my.base.ccsp` and it has a double chest full of cobblestone:
+
 ```sh
 CCSP my.base.ccsp COUNT cobblestone
 # OK 3456
@@ -63,7 +61,9 @@ Servers can respond to packets with one of two responses
 ```sh
 OK <RESPONSE>
 ```
+
 or
+
 ```sh
 ERR <CODE> <REASON>
 ```
