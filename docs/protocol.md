@@ -35,7 +35,7 @@ SUBDOMAIN = /[a-zA-Z][a-zA-Z0-9]{2,}/g
 
 | Predicate           | Definition                                         |
 | :------------------ | :------------------------------------------------- |
-| `NAME=<SERVERNAME>` | Server has the name of <SERVERNAME>                |
+| `NAME=<SERVERNAME>` | Server has the name of \<SERVERNAME\>              |
 | `MASS`              | Has the ability to store an item in bulk           |
 | `SYNTH`             | Able to synthesise items given it has the material |
 

@@ -1,0 +1,15 @@
+{
+	"workspace.library": ["~/Documents/CC-Tweaked-EmmyLua"],
+	"workspace.maxPreload": 2000,
+	"workspace.preloadFileSize": 1000,
+	"runtime.version": "Lua 5.1",
+	"runtime.builtin": {
+		"os": "disable",
+		"io": "disable"
+	},
+	"diagnostics.enable": true,
+	"diagnostics.globals": [],
+	"diagnostics.disable": ["lowercase-global"],
+	"completion.keywordSnippet": "Disable",
+	"telemetry.enable": false
+}

@@ -2,12 +2,19 @@
 
 ## Versions
 
-|      Version |  Role  | Usage                                                           |
-| -----------: | :----: | :-------------------------------------------------------------- |
-| `Standalone` | Client | Used like a program on a computer                               |
-|      `Image` | Client | Acts like an OS taking over the terminal                        |
-|     `Server` | Server | Communicates to clients for storage                             |
-|      `Proxy` | Server | Acts as a front and distributes traffic between multiple server |
+### Clients
+
+|      Version | Usage                                    |
+| -----------: | :--------------------------------------- |
+| `Standalone` | Used like a program on a computer        |
+|      `Image` | Acts like an OS taking over the terminal |
+
+### Servers
+
+|  Version | Usage                                                                |
+| -------: | :------------------------------------------------------------------- |
+| `Server` | Communicates to clients for storage                                  |
+|  `Proxy` | Acts as a server but then talks to multiple server to finish request |
 
 # Installation
 
