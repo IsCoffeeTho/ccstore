@@ -22,4 +22,5 @@ Copy paste into a computer you want to use
 
 ```sh
 wget https://raw.githubusercontent.com/IsCoffeeTho/ccstore/refs/heads/lastest/installer.lua
+installer
 ```

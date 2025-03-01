@@ -1,3 +1,4 @@
+
 # CCSP (CC Store Protocol)
 
 `CCSP` will use the channel `100` by default and will consist of two different systems:
@@ -14,6 +15,7 @@ CCSP DISCOVER <PREDICATES>
 ```
 
 Predicates are space seperated.
+The predicates test against the servers capabilities, as well as basic server information
 
 in which the servers can choose to reply with
 
@@ -30,14 +32,6 @@ SERVERNAME =  SUBDOMAIN "." SUBDOMAIN ("." SUBDOMAIN)
 
 SUBDOMAIN = /[a-zA-Z][a-zA-Z0-9]{2,}/g
 ```
-
-### Predicates for Servers
-
-| Predicate           | Definition                                         |
-| :------------------ | :------------------------------------------------- |
-| `NAME=<SERVERNAME>` | Server has the name of \<SERVERNAME\>              |
-| `MASS`              | Has the ability to store an item in bulk           |
-| `SYNTH`             | Able to synthesise items given it has the material |
 
 ## Packets
 

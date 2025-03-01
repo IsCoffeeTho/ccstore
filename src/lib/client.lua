@@ -1,6 +1,6 @@
 local discoverTimeout = 5
 
-local usedChannels = {
+local channelUsed = {
 	[90] = false,
 	[91] = false,
 	[92] = false,
@@ -13,12 +13,22 @@ local usedChannels = {
 	[99] = false,
 }
 
-function allocChannel()
-	
+local function allocChannel()
+	local channel = math.random(0,9) + 90
+	local i = 0
+	while channelUsed[channel] and i < 10 do
+		channel = channel + 1
+		channel = channel % 10
+		channel = channel + 90
+		i = i + 1
+	end
+	if i == 10 then return nil end
+	channelUsed[channel] = true
+	return channel
 end
 
-function freeChannel(channel)
-	
+local function freeChannel(channel)
+	channelUsed[channel] = false
 end
 
 local client = {
