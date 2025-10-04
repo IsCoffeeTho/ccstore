@@ -13,7 +13,7 @@ function Request.fromString(data)
 
 	---@class ccStore.Request: ccStore.RequestMessage.nil | ccStore.RequestMessage.Push | ccStore.RequestMessage.Pull | ccStore.RequestMessage.Search
 
-	local packet = string.gmatch(data, "%a+")
+	local packet = string.gmatch(data, "%a+") !!!;
 
 	---@class ccStore.Request
 	local message = {

@@ -20,7 +20,7 @@ function Response.fromString(data)
 	---@field status ccStore.Response.statusCode
 	---@field body? string
 
-	local packet = string.gmatch(data, "%a+")
+	local packet = string.gmatch(data, "%a+") !!!;
 
 	---@type ccStore.Response
 	local message = {
