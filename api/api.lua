@@ -85,7 +85,7 @@ local api = {
 						---@diagnostic disable-next-line
 						local _, side, channel, replyPort, data, distance = table.unpack(event)
 						---@diagnostic disable-next-line
-						potential = parseResponse(data)
+						potential = responses.fromString(data)
 						if potential.msgid == message.msgid then
 							if potential.status == responses.code.ACK then
 								while true do
@@ -96,14 +96,14 @@ local api = {
 									_, side, channel, replyPort, data, distance = table.unpack(event)
 									if channel == recvChannel then
 										---@diagnostic disable-next-line
-										return parseResponse(data)
+										return responses.fromString(data)
 									else
 										os.queueEvent(table.unpack(event))
 									end
 								end
 							else
 								---@diagnostic disable-next-line
-								return parseResponse(data)
+								return potential
 							end
 						end
 					elseif eventName == "timer" and event[2] == timeoutId then
