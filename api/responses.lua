@@ -28,11 +28,12 @@ function Response.fromString(data)
 		status = tonumber(packet()) or Response.code.ERROR
 	}
 
-	if #packet > 2 then
-		message.body = ""
-		for i,s in packet do
-			message.body = message.body + " " + s
-		end
+	local body = ""
+	for i,s in packet do
+		body = body + " " + s
+	end
+	if body ~= "" then
+		message.body = body
 	end
 	return message
 end
