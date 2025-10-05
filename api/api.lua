@@ -33,15 +33,17 @@ local api = {
 							response = {
 								msgid = request.msgid
 							}
-							function response.send(res)
+							function response.send()
+								response.msgid = request.msgid
 								---@diagnostic disable-next-line
-								modem.transmit(replyPort, port, responses.toString(res))
+								modem.transmit(replyPort, port, responses.toString(response))
 							end
 							request.response = response
 							function request.ack()
 								---@diagnostic disable-next-line
 								modem.transmit(replyPort, port, responses.toString({
 									status = responses.code.ACK,
+									msgid = request.msgid
 								}))
 							end
 							request.event = event
