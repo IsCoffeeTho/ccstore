@@ -133,12 +133,13 @@ local retval = {
 			end
 			local inventoryName = pairs(freeindex)(freeindex)
 			local freeDesc = freeindex[inventoryName]
+			if freeDesc == nil then return nil end
 			local inventory = freeDesc.inv
 			local freeSlot = freeDesc.slots[1]
 			return {
 				inv=inventory,
 				slot=freeSlot,
-				free=1024
+				free=64
 			}
 		end
 

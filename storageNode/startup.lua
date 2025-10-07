@@ -70,8 +70,11 @@ local storage = storageSystem.wrap(localModem, localIntermediate)
 
 local ccstoreAPI = require("api")
 
-local api = ccstoreAPI.wrap(publicModem)
+local api = ccstoreAPI.wrapServer(publicModem)
 local server = api.listen()
+
+storage.discoverInventories()
+storage.indexStorage()
 
 ---@param req ccStore.Server.Request
 ---@param res ccStore.Server.Response
@@ -112,6 +115,8 @@ local function handleRequest(req)
 		handlePushRequest(req, res)
 	end
 end
+
+print("Serving", config.namespace)
 
 while true do
 	local request = server.recv()
