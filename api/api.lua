@@ -8,7 +8,7 @@ local function newMsgID(length)
 	local bucket = ""
 	local retval = ""
 	local bucketLength = bucket:len()
-	for i=1,length do
+	for i = 1, length do
 		local r = math.random(bucketLength)
 		retval = retval + bucket[r]
 	end
@@ -20,6 +20,7 @@ local api = {
 	---@param modem ccTweaked.peripheral.Modem
 	wrapServer = function(modem)
 		return {
+			code = responses.code,
 			---@param port? integer
 			---@return Server
 			listen = function(port)
@@ -57,6 +58,7 @@ local api = {
 								---@diagnostic disable-next-line
 								modem.transmit(replyPort, port, responses.toString(response))
 							end
+
 							request.response = response
 							function request.ack()
 								---@diagnostic disable-next-line
@@ -65,6 +67,7 @@ local api = {
 									msgid = request.msgid
 								}))
 							end
+
 							request.event = event
 							return request
 						else
@@ -76,6 +79,7 @@ local api = {
 						end
 					end
 				end
+
 				if not modem.isOpen(port) then
 					modem.open(port)
 				end
@@ -83,7 +87,7 @@ local api = {
 			end
 		}
 	end,
-	wrapClient=function(modem)
+	wrapClient = function(modem)
 		---@param message ccStore.Request
 		---@param port? integer Port that the API is using.
 		---@param timeout? integer Time in seconds to wait for a response.
@@ -137,22 +141,23 @@ local api = {
 			end
 			return nil
 		end
-	
+
 		return {
+			code = responses.code,
 			request = request,
 			---@param namespace string
 			discover = function(namespace)
-				
+
 			end,
 			---@param namespace string
 			---@param fromInventory string
 			---@param slot integer
-			push = function (namespace, fromInventory, slot)
+			push = function(namespace, fromInventory, slot)
 				local req = request({
 					namespace = namespace,
 					msgid = newMsgID(),
-					fromInventory=fromInventory,
-					slot=slot
+					fromInventory = fromInventory,
+					slot = slot
 				})
 				if req == nil then return false end
 				if 20 < req.status or req.status >= 30 then return false end
@@ -167,9 +172,9 @@ local api = {
 				local req = request({
 					namespace = namespace,
 					msgid = newMsgID(),
-					item=itemId,
-					count=count,
-					toInventory=toInventory
+					item = itemId,
+					count = count,
+					toInventory = toInventory
 				})
 				if req == nil then return false end
 				if 20 < req.status or req.status >= 30 then return false end
@@ -183,8 +188,8 @@ local api = {
 				local req = request({
 					namespace = namespace,
 					msgid = newMsgID(),
-					query=query,
-					fuzzy=fuzzy
+					query = query,
+					fuzzy = fuzzy
 				})
 				if req == nil then return false end
 				if 20 < req.status or req.status >= 30 then return false end
