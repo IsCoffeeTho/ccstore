@@ -48,7 +48,7 @@ function Response.fromString(data)
 	---@type ccStore.Response
 	local message = {
 		msgid = packet(),
-		status = tonumber(packet()) or Response.code.ERROR
+		status = tonumber(packet() or "40") or Response.code.ERROR
 	}
 
 	local body = ""
@@ -64,7 +64,7 @@ end
 ---@param res ccStore.Response
 ---@return string
 function Response.toString(res)
-	local responseLine = string.format("%s %d", res.msgid, res.status)
+	local responseLine = string.format("%s %02d", res.msgid or "", res.status or Response.code.ERROR)
 	if res.body == nil then
 		return responseLine
 	end

@@ -91,7 +91,7 @@ local function handlePushRequest(req, res)
 	end
 	local item = sender.getItemDetail(req.slot)
 	if item == nil then
-		res.status = api.code.ITEM_MISSING
+		res.status = api.code.ITEM_INACCESSIBLE
 		res.send()
 		return
 	end
