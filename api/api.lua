@@ -47,6 +47,8 @@ local api = {
 						if request ~= nil then
 							---@class ccStore.Server.Response: ccStore.Response
 							response = {
+								acknowledged = false,
+								sent = false,
 								msgid = request.msgid
 							}
 							---@param body? string
@@ -57,17 +59,20 @@ local api = {
 								response.msgid = request.msgid
 								---@diagnostic disable-next-line
 								modem.transmit(replyPort, port, responses.toString(response))
+								response.acknowledged = true
+								response.sent = true
 							end
 
-							request.response = response
-							function request.ack()
+							function response.ack()
 								---@diagnostic disable-next-line
 								modem.transmit(replyPort, port, responses.toString({
 									status = responses.code.ACK,
 									msgid = request.msgid
 								}))
+								response.acknowledged = true
 							end
 
+							request.response = response
 							request.event = event
 							return request
 						else

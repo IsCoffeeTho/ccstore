@@ -157,6 +157,13 @@ local retval = {
 		function storage.pushIntermediate()
 			for slot, item in pairs(intermediate.list()) do
 				local freeSlot = storage.determineFree(item.name)
+				if freeSlot then
+					print("slot =",freeSlot.slot)
+					print("free =",freeSlot.free)
+					print("inv =",freeSlot.inv)
+				else
+					print("freeSlot is nil")
+				end
 				
 			end
 		end

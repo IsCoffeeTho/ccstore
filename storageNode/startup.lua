@@ -95,7 +95,7 @@ local function handlePushRequest(req, res)
 		res.send()
 		return
 	end
-	req.ack()
+	res.ack()
 	local freeSpot = storage.determineFree(item.name)
 	if freeSpot == nil then
 		res.status = api.code.STORAGE_FULL
@@ -119,13 +119,19 @@ local function handleRequest(req)
 	end
 end
 
-print("Serving", config.namespace)
+print("Serving @", config.namespace)
 
 while true do
 	local request = server.recv()
 	if request.operation == "discover" then
 		---@TODO implement
 	elseif request.namespace == config.namespace then
-		handleRequest(request)
+		local successful, err = pcall(handleRequest, request)
+		if not successful then
+			if not request.response.sent then
+				request.response.status = api.code.ERROR
+				request.response.send("Internal Server Error")
+			end
+		end
 	end
 end
