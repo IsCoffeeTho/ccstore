@@ -86,29 +86,34 @@ local function handlePushRequest(req, res)
 	local sender = peripheral.wrap(senderName)
 	if not publicModem.isPresentRemote(senderName) or sender == nil then
 		res.status = api.code.INVENTORY_INACCESSIBLE
-		res.send()
+		res.send("Cannot see inventory")
 		return
 	end
 	local item = sender.getItemDetail(req.slot)
 	if item == nil then
 		res.status = api.code.ITEM_INACCESSIBLE
-		res.send()
+		res.send("Cannot take item from slot from inventory")
 		return
 	end
 	res.ack()
 	local freeSpot = storage.determineFree(item.name)
 	if freeSpot == nil then
 		res.status = api.code.STORAGE_FULL
-		res.send()
+		res.send("Storage System is full")
+		return
 	end
 	local count = req.count
 	if count == 0 then
 		count = 64
 	end
 	publicIntermediate.pullItems(senderName, req.slot, count)
-	storage.pushIntermediate()
+	if not storage.pushIntermediate() then
+		res.status = api.code.STORAGE_FULL
+		res.send("Storage System is full")
+		return
+	end
 	res.status = api.code.OK
-	res.send()
+	res.send("OK")
 end
 
 ---@param req ccStore.Server.Request

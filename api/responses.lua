@@ -11,6 +11,8 @@ local Response = {
 		
 		-- Request was handled
 		OK = 20,
+		-- Request was handled but not fully
+		PARTIAL_OK = 21,
 		-- Discover was successful
 		SERVER_PRESENT = 29,
 		
