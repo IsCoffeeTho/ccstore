@@ -144,7 +144,11 @@ local api = {
 				end
 				os.queueEvent(table.unpack(event))
 			end
-			return nil
+			return {
+				msgid=message.msgid,
+				status=responses.code.REQUEST_TIMEOUT,
+				body="Request Timeout; Server did not respond in time"
+			}
 		end
 
 		return {

@@ -31,7 +31,9 @@ local Response = {
 		-- Requested item cannot be pulled to storage
 		ITEM_EMPTY = 52,
 		-- Server was hit but request was bad
-		MALFORMED_REQUEST = 55
+		MALFORMED_REQUEST = 55,
+		-- Server didn't respond in time
+		REQUEST_TIMEOUT = 59
 	}
 }
 
