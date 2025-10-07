@@ -3,11 +3,34 @@ local Response = {
 	--- Some what stolen from geminiprotocol
 	--- however severly simplified
 	code = {
+		-- Request is being handled
 		ACK = 05,
+		
+		-- Request needs data block
 		MISSING_INFO = 10,
+		
+		-- Request was handled
 		OK = 20,
+		-- Discover was successful
+		SERVER_PRESENT = 29,
+		
+		-- Server had an error and cannot process your request
 		ERROR = 40,
+		-- Server could collect the item but is not doing so due to policies set in place.
+		-- Could be that the server is configured to accept specific items
+		NOT_ACCEPTED = 41,
+		-- Describes that the inventory passed into the request is not visible to the server
+		INVENTORY_INACCESSIBLE = 42,
+		-- Alerts that an item is missing from the request inventory
+		ITEM_INACCESSIBLE = 43,
+
+		-- Suggests that the request has bad data or operation
 		BAD_REQUEST = 50,
+		-- Requested item cannot be pushed to storage
+		STORAGE_FULL = 51,
+		-- Requested item cannot be pulled to storage
+		ITEM_EMPTY = 52,
+		-- Server was hit but request was bad
 		MALFORMED_REQUEST = 55
 	}
 }

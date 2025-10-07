@@ -1,8 +1,14 @@
+--[[
+Notes:
+- localIntermediate and publicIntermediate variables must be referencing the same inventory
+]]--
+
 local cfg = {
-	localModem = "bottom",
+	namespace = "",
+	localModem = "back",
 	localIntermediate = "minecraft:chest_0",
-	publicModem = "top",
 	publicIntermediate = "minecraft:chest_1",
+	publicModem = "top",
 }
 
 return cfg

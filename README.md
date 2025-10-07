@@ -1,3 +1,5 @@
 # cc:store
 
-A storage software suite to make a large scale storage system 
+A [CC:Tweaked](https://tweaked.cc) library to construct a large scale storage system.
+
+## Topology

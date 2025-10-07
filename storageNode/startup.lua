@@ -45,103 +45,79 @@ print("Modems passed checks")
 print("Checking intermediate inventories")
 if not localModem.isPresentRemote(config.localIntermediate) then
 	print("FAILED: localIntermediate is not present on localNetwork")
+	return
 end
+local localIntermediate = peripheral.wrap(config.localIntermediate)
+if localIntermediate == nil then
+	print("FAILED: publicIntermediate failed to bind")
+	return
+end
+
 if not publicModem.isPresentRemote(config.publicIntermediate) then
 	print("FAILED: publicIntermediate is not present on publicNetwork")
+	return
+end
+local publicIntermediate = peripheral.wrap(config.publicIntermediate)
+if publicIntermediate == nil then
+	print("FAILED: publicIntermediate failed to bind")
+	return
 end
 
----@type ccTweaked.peripheral.Inventory[]
-local inventories = {}
+local storageSystem = require("storage")
 
-local function discoverInventories()
-	inventories = {}
-	local devices = localModem.getNamesRemote()
-	if #devices == 0 then
-		print("no devices on localModem")
+---@diagnostic disable-next-line
+local storage = storageSystem.wrap(localModem, localIntermediate)
+
+local ccstoreAPI = require("api")
+
+local api = ccstoreAPI.wrap(publicModem)
+local server = api.listen()
+
+---@param req ccStore.Server.Request
+---@param res ccStore.Server.Response
+local function handlePushRequest(req, res)
+	local senderName = req.fromInventory
+	local sender = peripheral.wrap(senderName)
+	if not publicModem.isPresentRemote(senderName) or sender == nil then
+		res.status = api.code.INVENTORY_INACCESSIBLE
+		res.send()
+		return
 	end
-	local function discoverInventory(deviceName)
-		if deviceName == config.localIntermediate then
-			return
-		end
-		local deviceType = localModem.hasTypeRemote(deviceName, "inventory")
-		if deviceType == nil then
-			print("ERR: A device has shown up but is not present on localModem")
-			print("Please check hardware and try again")
-			return
-		end
-		if deviceType then
-			---@type ccTweaked.peripheral.Inventory
-			---@diagnostic disable-next-line
-			local device = peripheral.wrap(deviceName)
-			inventories[deviceName] = device
-		else
-			print("Found", deviceName, "but device is not an inventory (could be erroneous)")
-		end
+	local item = sender.getItemDetail(req.slot)
+	if item == nil then
+		res.status = api.code.ITEM_MISSING
+		res.send()
+		return
 	end
-	for _, deviceName in pairs(devices) do
-		discoverInventory(deviceName)
+	req.ack()
+	local freeSpot = storage.determineFree(item.name)
+	if freeSpot == nil then
+		res.status = api.code.STORAGE_FULL
+		res.send()
 	end
-	print("Discovered", #inventories, "inventories")
+	local count = req.count
+	if count == 0 then
+		count = 64
+	end
+	publicIntermediate.pullItems(senderName, req.slot, count)
+	storage.pushIntermediate()
+	res.status = api.code.OK
+	res.send()
 end
 
----@type table<string, itemIdx>
-local itemIndex = {}
----@type table<string, table> | table<'*', table<string | integer>>
-local freeIndex = {}
-
-local function indexStorage()
-	itemIndex = {}
-	freeIndex = {}
-	for invName, inventory in pairs(inventories) do
-		local storage = inventory.list()
-		local freeSlots = inventory.size() - #storage
-		if freeSlots > 0 then
-			if freeIndex['*'] == nil then
-				freeIndex['*'] = {}
-			end
-			freeIndex['*'][invName] = freeSlots
-		end
-		for slot, item in pairs(storage) do
-			print(slot, item.name, item.count)
-			if itemIndex[item.name] == nil then
-				---@type ccTweaked.peripheral.itemDetails | nil
-				local itemDetails = inventory.getItemDetail(slot)
-				if itemDetails == nil then
-					print("there was a problem accessing an item")
-					return
-				end
-				---@class itemIdx
-				local itemIdx = {
-					details = {
-						maxCount = itemDetails.maxCount
-					},
-					---@type invIdx[]
-					stored = {}
-				}
-				itemIndex[item.name] = itemIdx
-			end
-			---@class invIdx
-			local invIdx = {
-				inventory = inventory,
-				count = item.count
-			}
-			table.insert(
-				itemIndex[item.name].stored,
-				invIdx
-			)
-		end
+---@param req ccStore.Server.Request
+local function handleRequest(req)
+	local res = req.response
+	if req.operation == "push" then
+		handlePushRequest(req, res)
 	end
-	print(textutils.serialize(itemIndex))
 end
-
-discoverInventories()
-indexStorage()
-
-local api = require("api")
-
-local publicAPI = api.wrap(publicModem)
-local server = publicAPI.listen()
 
 while true do
 	local request = server.recv()
+	if request.operation == "discover" then
+		---@TODO implement
+	elseif request.namespace == config.namespace then
+		handleRequest(request)
+	end
 end

@@ -11,7 +11,7 @@ function Request.fromString(data)
 	---@class ccStore.RequestMessage.nil: ccStore.RequestMessage
 	---@field operation ""
 
-	---@class ccStore.Request: ccStore.RequestMessage.nil | ccStore.RequestMessage.Push | ccStore.RequestMessage.Pull | ccStore.RequestMessage.Search
+	---@class ccStore.Request: ccStore.RequestMessage.nil | ccStore.RequestMessage.Discover | ccStore.RequestMessage.Free | ccStore.RequestMessage.Push | ccStore.RequestMessage.Pull | ccStore.RequestMessage.Search
 
 	local packet = string.gmatch(data, "[^ ]+")
 
@@ -21,25 +21,43 @@ function Request.fromString(data)
 		msgid = packet(),
 		operation = packet()
 	}
+	---@class ccStore.RequestMessage.Discover: ccStore.RequestMessage
+	---@field operation "discover"
+	
+	---@class ccStore.RequestMessage.Free: ccStore.RequestMessage
+	---@field operation "free"
 
-	if message.operation == "discover" then
-		---@class ccStore.RequestMessage.Discover: ccStore.RequestMessage
-		---@field operation "discover"
-
-		---@type ccStore.RequestMessage.Discover
-		---@diagnostic disable-next-line
+	if message.operation == "discover" or message.operation == "free" then
 		return message
 	elseif message.operation == "push" then
 		---@class ccStore.RequestMessage.Push: ccStore.RequestMessage
 		---@field operation "push"
-		---@field fromInventory string Formatted as "<inventory>;<slot>" where slot is 1st indexed (because lua)
+		---@field fromInventory string 
+		---@field slot integer 1st indexed slot number of the inventory which holds the item
+		---@field count integer *Optional* count of items to push, if unset or set to `0` it is assumed that the whole stack is to be pushed
 
-		message.fromInventory = packet()
+		local next = packet():gmatch("[^;]+")
+
+		message.fromInventory = next()
+		if message.fromInventory == nil then return nil end
+		---@type integer
+		---@diagnostic disable-next-line
+		message.slot = tonumber(next())
+		if message.slot == nil then return nil end
+		
+		message.count = tonumber(packet() or "0")
+		if message.count == nil then
+			message.count = 0
+		end
 	elseif message.operation == "pull" then
 		---@class ccStore.RequestMessage.Pull: ccStore.RequestMessage
 		---@field operation "pull"
+		---@field item string item_id of item to pull from storage
+		---@field count integer count of items to pull
 		---@field toInventory string Formatted as "<inventory>" 
 
+		message.item = packet()
+		message.count = tonumber(packet())
 		message.toInventory = packet()
 	elseif message.operation == "search" then
 		---@class ccStore.RequestMessage.Search: ccStore.RequestMessage
@@ -75,12 +93,12 @@ function Request.toString(req)
 		---@type ccStore.RequestMessage.Pull
 		---@diagnostic disable-next-line
 		local op = req
-		bodyLine = op.toInventory
+		bodyLine = string.format("%s %d %s", op.item, op.count, op.toInventory)
 	elseif req.operation == "push" then
 		---@type ccStore.RequestMessage.Push
 		---@diagnostic disable-next-line
 		local op = req
-		bodyLine = op.fromInventory
+		bodyLine = string.format("%s;%d", op.fromInventory, op.slot)
 	elseif req.operation == "search" then
 		---@type ccStore.RequestMessage.Search
 		---@diagnostic disable-next-line
