@@ -73,8 +73,11 @@ local ccstoreAPI = require("api")
 local api = ccstoreAPI.wrapServer(publicModem)
 local server = api.listen()
 
+print("Discovering inventories")
 storage.discoverInventories()
+print("Indexing inventories")
 storage.indexStorage()
+print("Indexing complete")
 
 ---@param req ccStore.Server.Request
 ---@param res ccStore.Server.Response
