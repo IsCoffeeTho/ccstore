@@ -114,6 +114,7 @@ local function handlePushRequest(req, res)
 	end
 	res.status = api.code.OK
 	res.send("OK")
+	storage.reindexStorage()
 end
 
 ---@param req ccStore.Server.Request
