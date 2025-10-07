@@ -65,15 +65,19 @@ function Request.fromString(data)
 		---@field query string Search query, can be an itemID or an item name
 		---@field fuzzy boolean Describes whether the search will be inexact and will try to return similar items (name-wise)
 
-		local query = ""
+		local query = packet()
 		for i,s in packet do
-			query = query + " " + s
+			query = string.format("%s %s", query, s)
 		end
-		message.fuzzy = query[1] == "~"
-		if message.fuzzy then
-			query = query:sub(2)
+		if query == nil then
+			message.query = ""
+		else
+			message.fuzzy = query[1] == "~"
+			if message.fuzzy then
+				query = query:sub(2)
+			end
+			message.query = query
 		end
-		message.query = query
 	end
 	return message
 end
@@ -106,7 +110,7 @@ function Request.toString(req)
 		if op.fuzzy then
 			bodyLine = "~"
 		end
-		bodyLine = bodyLine + op.query
+		bodyLine = string.format("%s%s", op.fuzzy and "~" or "", op.query)
 	end
 	return string.format("%s %s", requestLine, bodyLine)
 end

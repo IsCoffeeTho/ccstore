@@ -57,7 +57,7 @@ function Response.fromString(data)
 
 	local body = ""
 	for i,s in packet do
-		body = body + " " + s
+		body = string.format("%s %s", body, s)
 	end
 	if body ~= "" then
 		message.body = body
