@@ -192,7 +192,6 @@ local retval = {
 			return freeindex
 		end
 		
-		---comment
 		---@param slot integer
 		---@param item? ccTweaked.peripheral.item
 		---@return boolean
@@ -204,8 +203,8 @@ local retval = {
 				local freeInvName = peripheral.getName(freeSlot.inv)
 				storage.inventoriesToReIndex[freeInvName] = freeSlot.inv
 				local pushed = freeSlot.inv.pullItems(intermediateName, slot, freeSlot.free, freeSlot.slot)
-				freeSlot.free = freeSlot - pushed
 				if pushed == 0 then return false end
+				freeSlot.free = freeSlot.free - pushed
 				item.count = item.count - pushed
 			end
 			return true

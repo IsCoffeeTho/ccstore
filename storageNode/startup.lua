@@ -75,14 +75,14 @@ local server = api.listen()
 
 print("Discovering inventories")
 storage.discoverInventories()
-print("Indexing inventories")
+print("Indexing inventories...")
 storage.indexStorage()
 print("Indexing complete")
-print("Flushing intermediate chest")
+print("Flushing intermediate...")
 if storage.flush() then
-	print("")
+	print("Flushed intermediate")
 else
-	print("FAILED: ")
+	print("FAILED: Couldn't flush intermediate")
 	return
 end
 
