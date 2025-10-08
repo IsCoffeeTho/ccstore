@@ -106,6 +106,11 @@ local api = {
 			while modem.isOpen(recvChannel) do
 				recvChannel = math.random(10000, 19999)
 			end
+			---@type ccStore.Response
+			local retval = {
+				msgid = message.msgid,
+				status = responses.code.REQUEST_TIMEOUT,
+			}
 			modem.open(recvChannel)
 			modem.transmit(port, recvChannel, requests.toString(message))
 			local timeoutId = os.startTimer(10)
@@ -120,7 +125,16 @@ local api = {
 					---@diagnostic disable-next-line
 					potential = responses.fromString(data)
 					if potential.msgid == message.msgid then
-						if potential.status == responses.code.ACK then
+						if message.operation == "discover" then
+							if potential.status == responses.code.SERVER_PRESENT then
+								retval.status = responses.code.SERVER_PRESENT
+								if retval.body == nil then
+									retval.body = potential.body
+								else
+									retval.body = string.format("%s,%s", retval.body, potential.body)
+								end
+							end
+						elseif potential.status == responses.code.ACK then
 							while true do
 								---@type ["modem_message", string, string, integer, boolean|string|number|table, number|nil]
 								---@diagnostic disable-next-line
@@ -144,11 +158,7 @@ local api = {
 				end
 				os.queueEvent(table.unpack(event))
 			end
-			return {
-				msgid=message.msgid,
-				status=responses.code.REQUEST_TIMEOUT,
-				body="Request Timeout; Server did not respond in time"
-			}
+			return retval
 		end
 
 		return {
@@ -156,7 +166,7 @@ local api = {
 			request = request,
 			---@param namespace string
 			discover = function(namespace)
-
+				
 			end,
 			---@param namespace string
 			---@param fromInventory string

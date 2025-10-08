@@ -106,15 +106,18 @@ local function handlePushRequest(req, res)
 	if count == 0 then
 		count = 64
 	end
+	print("Pushing item to storage")
 	publicIntermediate.pullItems(senderName, req.slot, count)
 	if not storage.pushIntermediate() then
-		res.status = api.code.STORAGE_FULL
+		res.status = api.code.PARTIAL_OK
 		res.send("Storage System is full")
 		return
 	end
 	res.status = api.code.OK
 	res.send("OK")
+	print("Reindexing...")
 	storage.reindexStorage()
+	print("Reindexed")
 end
 
 ---@param req ccStore.Server.Request
