@@ -78,6 +78,14 @@ storage.discoverInventories()
 print("Indexing inventories")
 storage.indexStorage()
 print("Indexing complete")
+print("Flushing intermediate chest")
+if storage.flush() then
+	print("")
+else
+	print("FAILED: ")
+	return
+end
+
 
 ---@param req ccStore.Server.Request
 ---@param res ccStore.Server.Response

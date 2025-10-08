@@ -185,19 +185,35 @@ local retval = {
 			if freeindex == nil then
 				return storage.getNextFree()
 			end
+			if freeindex.free == 0 then
+				storage.freeIndex[itemid] = nil
+				return storage.getNextFree()
+			end
 			return freeindex
+		end
+		
+		---comment
+		---@param slot integer
+		---@param item? ccTweaked.peripheral.item
+		---@return boolean
+		function storage.push(slot, item)
+			item = item or intermediate.getItemDetail(slot) or {count = 0}
+			while item.count > 0 do
+				local freeSlot = storage.determineFree(item.name)
+				if freeSlot == nil then return false end
+				local freeInvName = peripheral.getName(freeSlot.inv)
+				storage.inventoriesToReIndex[freeInvName] = freeSlot.inv
+				local pushed = freeSlot.inv.pullItems(intermediateName, slot, freeSlot.free, freeSlot.slot)
+				freeSlot.free = freeSlot - pushed
+				if pushed == 0 then return false end
+				item.count = item.count - pushed
+			end
+			return true
 		end
 
 		function storage.flush()
 			for slot, item in pairs(intermediate.list()) do
-				while item.count > 0 do
-					local freeSlot = storage.determineFree(item.name)
-					if freeSlot == nil then return false end
-					storage.inventoriesToReIndex[peripheral.getName(freeSlot.inv)] = freeSlot.inv
-					local pushed = freeSlot.inv.pullItems(intermediateName, slot, freeSlot.free, freeSlot.slot)
-					if pushed == 0 then return false end
-					item.count = item.count - pushed
-				end
+				if not storage.push(slot, item) then return false end
 			end
 			return true
 		end
