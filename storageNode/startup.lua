@@ -133,7 +133,10 @@ print("Serving @", config.namespace)
 while true do
 	local request = server.recv()
 	if request.operation == "discover" then
-		---@TODO implement
+		if request.namespace == "*" or request.namespace == config.namespace then
+			request.response.status = api.code.SERVER_PRESENT
+			request.response.send(config.name)
+		end
 	elseif request.namespace == config.namespace then
 		local successful, err = pcall(handleRequest, request)
 		if not successful then
