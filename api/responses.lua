@@ -5,17 +5,17 @@ local Response = {
 	code = {
 		-- Request is being handled
 		ACK = 05,
-		
-		-- Request needs data block
-		MISSING_INFO = 10,
-		
+
+
 		-- Request was handled
 		OK = 20,
 		-- Request was handled but not fully
 		PARTIAL_OK = 21,
+		-- Discover was unsuccessful
+		EMPTY_NAMESPACE = 28,
 		-- Discover was successful
 		SERVER_PRESENT = 29,
-		
+
 		-- Server had an error and cannot process your request
 		ERROR = 40,
 		-- Server could collect the item but is not doing so due to policies set in place.
@@ -32,8 +32,10 @@ local Response = {
 		STORAGE_FULL = 51,
 		-- Requested item cannot be pulled to storage
 		ITEM_EMPTY = 52,
+		-- Request needs data block
+		MISSING_INFO = 53,
 		-- Server was hit but request was bad
-		MALFORMED_REQUEST = 55,
+		MALFORMED_REQUEST = 54,
 		-- Server didn't respond in time
 		REQUEST_TIMEOUT = 59
 	}
@@ -56,7 +58,7 @@ function Response.fromString(data)
 	}
 
 	local body = ""
-	for i,s in packet do
+	for i, s in packet do
 		body = string.format("%s %s", body, s)
 	end
 	if body ~= "" then

@@ -7,6 +7,7 @@ function Request.fromString(data)
 	---@field namespace string
 	---@field msgid string
 	---@field operation string
+	---@field raw string
 
 	---@class ccStore.RequestMessage.nil: ccStore.RequestMessage
 	---@field operation ""
@@ -17,9 +18,10 @@ function Request.fromString(data)
 
 	---@class ccStore.Request
 	local message = {
+		raw = data,
 		namespace = packet(),
 		msgid = packet(),
-		operation = packet()
+		operation = packet(),
 	}
 	---@class ccStore.RequestMessage.Discover: ccStore.RequestMessage
 	---@field operation "discover"
@@ -64,10 +66,14 @@ function Request.fromString(data)
 		---@field operation "search"
 		---@field query string Search query, can be an itemID or an item name
 		---@field fuzzy boolean Describes whether the search will be inexact and will try to return similar items (name-wise)
-
-		local query = packet()
-		for i,s in packet do
-			query = string.format("%s %s", query, s)
+		
+		local query = nil
+		for _,s in packet do
+			if query == nil then
+				query = s
+			else
+				query = string.format("%s %s", query, s)
+			end
 		end
 		if query == nil then
 			message.query = ""

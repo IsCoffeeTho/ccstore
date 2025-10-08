@@ -108,7 +108,7 @@ local function handlePushRequest(req, res)
 	end
 	print("Pushing item to storage")
 	publicIntermediate.pullItems(senderName, req.slot, count)
-	if not storage.pushIntermediate() then
+	if not storage.flush() then
 		res.status = api.code.PARTIAL_OK
 		res.send("Storage System is full")
 		return
@@ -121,10 +121,42 @@ local function handlePushRequest(req, res)
 end
 
 ---@param req ccStore.Server.Request
+---@param res ccStore.Server.Response
+local function handlePullRequest(req, res)
+	local recipientName = req.fromInventory
+	local recipient = peripheral.wrap(recipientName)
+	if not publicModem.isPresentRemote(recipientName) or recipient == nil then
+		res.status = api.code.INVENTORY_INACCESSIBLE
+		res.send("Cannot see inventory")
+		return
+	end
+	res.ack()
+	local pulledCount = storage.pullItem(req.item, req.count)
+	if pulledCount == 0 then
+		res.status = api.code.ITEM_EMPTY
+		res.send("We do not have that :(")
+		return
+	end
+	print("Pulled item from storage")
+	if pulledCount < req.count then
+		res.status = api.code.PARTIAL_OK
+		res.send("OK")
+	else
+		res.status = api.code.OK
+		res.send("OK")
+	end
+	print("Reindexing...")
+	storage.reindexStorage()
+	print("Reindexed")
+end
+
+---@param req ccStore.Server.Request
 local function handleRequest(req)
 	local res = req.response
 	if req.operation == "push" then
 		handlePushRequest(req, res)
+	elseif req.operation == "pull" then
+		handlePullRequest(req, res)
 	end
 end
 

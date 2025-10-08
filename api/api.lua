@@ -92,6 +92,7 @@ local api = {
 			end
 		}
 	end,
+	---@param modem ccTweaked.peripheral.WiredModem
 	wrapClient = function(modem)
 		---@param message ccStore.Request
 		---@param port? integer Port that the API is using.
@@ -142,6 +143,7 @@ local api = {
 								---@diagnostic disable-next-line
 								_, side, channel, replyPort, data, distance = table.unpack(event)
 								if channel == recvChannel then
+									modem.close(recvChannel)
 									---@diagnostic disable-next-line
 									return responses.fromString(data)
 								else
@@ -149,6 +151,7 @@ local api = {
 								end
 							end
 						else
+							modem.close(recvChannel)
 							---@diagnostic disable-next-line
 							return potential
 						end
@@ -158,28 +161,37 @@ local api = {
 				end
 				os.queueEvent(table.unpack(event))
 			end
+			modem.close(recvChannel)
 			return retval
 		end
 
 		return {
 			code = responses.code,
 			request = request,
-			---@param namespace string
+			---@param namespace? string
 			discover = function(namespace)
-				
+				local res = request({
+					namespace = namespace,
+					msgid = newMsgID(),
+					operation = "discover"
+				})
+				if res == nil then return {} end
+				if res.status == 29 then return {} end
+				return string.gmatch(res.body, "[^,]+")
 			end,
 			---@param namespace string
 			---@param fromInventory string
 			---@param slot integer
 			push = function(namespace, fromInventory, slot)
-				local req = request({
+				local res = request({
 					namespace = namespace,
 					msgid = newMsgID(),
+					operation = "push",
 					fromInventory = fromInventory,
 					slot = slot
 				})
-				if req == nil then return false end
-				if 20 < req.status or req.status >= 30 then return false end
+				if res == nil then return false end
+				if 20 < res.status or res.status >= 30 then return false end
 				return true
 			end,
 			---@param namespace string
@@ -188,15 +200,16 @@ local api = {
 			---@param count? integer
 			pull = function(namespace, itemId, toInventory, count)
 				count = count or 1
-				local req = request({
+				local res = request({
 					namespace = namespace,
 					msgid = newMsgID(),
+					operation = "pull",
 					item = itemId,
 					count = count,
 					toInventory = toInventory
 				})
-				if req == nil then return false end
-				if 20 < req.status or req.status >= 30 then return false end
+				if res == nil then return false end
+				if 20 < res.status or res.status >= 30 then return false end
 				return true
 			end,
 			---@param namespace string
@@ -204,14 +217,15 @@ local api = {
 			---@param fuzzy? boolean
 			search = function(namespace, query, fuzzy)
 				fuzzy = fuzzy or false
-				local req = request({
+				local res = request({
 					namespace = namespace,
 					msgid = newMsgID(),
+					operation = "search",
 					query = query,
 					fuzzy = fuzzy
 				})
-				if req == nil then return false end
-				if 20 < req.status or req.status >= 30 then return false end
+				if res == nil then return false end
+				if 20 < res.status or res.status >= 30 then return false end
 				return true
 			end,
 		}

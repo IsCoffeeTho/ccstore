@@ -188,21 +188,32 @@ local retval = {
 			return freeindex
 		end
 
-		function storage.pushIntermediate()
+		function storage.flush()
 			for slot, item in pairs(intermediate.list()) do
-				local freeSlot = storage.determineFree(item.name)
-				if freeSlot == nil then return false end
-				storage.inventoriesToReIndex[peripheral.getName(freeSlot.inv)] = freeSlot.inv
-				freeSlot.inv.pullItems(intermediateName, slot, freeSlot.free, freeSlot.slot)
-				item.count = item.count - freeSlot.free
-				if item.count > 0 then
-					local emptySlot = storage.getNextFree()
-					if emptySlot == nil then return false end
-					storage.inventoriesToReIndex[peripheral.getName(emptySlot.inv)] = emptySlot.inv
-					emptySlot.inv.pullItems(intermediateName, slot, item.count, emptySlot.slot)
+				while item.count > 0 do
+					local freeSlot = storage.determineFree(item.name)
+					if freeSlot == nil then return false end
+					storage.inventoriesToReIndex[peripheral.getName(freeSlot.inv)] = freeSlot.inv
+					local pushed = freeSlot.inv.pullItems(intermediateName, slot, freeSlot.free, freeSlot.slot)
+					if pushed == 0 then return false end
+					item.count = item.count - pushed
 				end
 			end
 			return true
+		end
+		
+		function storage.pullItem(itemId, count)
+			local itemIdx = storage.itemIndex[itemId]
+			if itemIdx == nil then
+				return 0
+			end
+			for invName, storedDesc in pairs(itemIdx.stored) do
+				local inv = storedDesc.inv
+				for _,slot in ipairs(storedDesc.slots) do
+					
+				end
+			end
+			return 0
 		end
 
 		return storage
