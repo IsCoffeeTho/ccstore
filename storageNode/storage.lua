@@ -34,7 +34,7 @@ local retval = {
 				o.itemId = ""
 				o.count = 0
 				o.maxCount = 64
-				o.free = o.maxCount - o.used
+				o.free = o.maxCount - o.count
 				for i, slot in ipairs(o.inventory.slots) do -- delete from slot index
 					if slot == o then
 						table.remove(o.inventory.slots, i)
@@ -65,7 +65,7 @@ local retval = {
 				o.itemId = itemDetails.name
 				o.count = itemDetails.count
 				o.maxCount = itemDetails.maxCount
-				o.free = o.maxCount - o.used
+				o.free = o.maxCount - o.count
 				markAsUsed()
 			end
 
@@ -170,9 +170,7 @@ local retval = {
 				local lowestCountSlot = nil
 				for i, slot in ipairs(o.slots) do
 					if slot.itemId == itemId then
-						if lowestCountSlot == nil then
-							lowestCountSlot = slot
-						elseif lowestCountSlot.count < slot.count then
+						if lowestCountSlot == nil or lowestCountSlot.count < slot.count then
 							lowestCountSlot = slot
 						end
 					end
@@ -212,9 +210,7 @@ local retval = {
 			for name, o in pairs(storage.inventories) do
 				local found = o.find(itemId)
 				if found ~= nil then
-					if lowestCountSlot == nil then
-						lowestCountSlot = found
-					elseif lowestCountSlot.count < found.count then
+					if lowestCountSlot == nil or lowestCountSlot.count < found.count then
 						lowestCountSlot = found
 					end
 				end
