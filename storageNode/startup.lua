@@ -94,6 +94,7 @@ local function handlePushRequest(req, res)
 		res.send("Cannot see inventory")
 		return
 	end
+	---@type ccTweaked.peripheral.itemDetails | nil
 	local item = sender.getItemDetail(req.slot)
 	if item == nil then
 		res.status = api.code.ITEM_INACCESSIBLE
@@ -101,19 +102,15 @@ local function handlePushRequest(req, res)
 		return
 	end
 	res.ack()
-	local freeSpot = storage.determineFree(item.name)
-	if freeSpot == nil then
-		res.status = api.code.STORAGE_FULL
-		res.send("Storage System is full")
-		return
-	end
+	storage.flush()
 	local count = req.count
 	if count == 0 then
-		count = 64
+		count = item.maxCount
 	end
 	print("Pushing item to storage")
 	publicIntermediate.pullItems(senderName, req.slot, count)
 	if not storage.flush() then
+		publicIntermediate.pushItems(senderName, 1, count, req.slot)
 		res.status = api.code.PARTIAL_OK
 		res.send("Storage System is full")
 		return
@@ -181,6 +178,7 @@ while true do
 				request.response.status = api.code.ERROR
 				request.response.send("Internal Server Error")
 			end
+			print(err)
 		end
 	end
 end

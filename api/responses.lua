@@ -58,8 +58,12 @@ function Response.fromString(data)
 	}
 
 	local body = ""
-	for i, s in packet do
-		body = string.format("%s %s", body, s)
+	for word in packet do
+		if body == "" then
+			body = word
+		else
+			body = body.." "..word
+		end
 	end
 	if body ~= "" then
 		message.body = body

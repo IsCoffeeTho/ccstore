@@ -68,11 +68,11 @@ function Request.fromString(data)
 		---@field fuzzy boolean Describes whether the search will be inexact and will try to return similar items (name-wise)
 		
 		local query = nil
-		for _,s in packet do
+		for word in packet do
 			if query == nil then
-				query = s
+				query = word
 			else
-				query = string.format("%s %s", query, s)
+				query = query.." "..word
 			end
 		end
 		if query == nil then
