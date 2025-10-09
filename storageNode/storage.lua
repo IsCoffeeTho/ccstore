@@ -6,7 +6,7 @@ local retval = {
 
 		local storage = {
 			---@type ccTweaked.peripheral.Inventory
-			intermediate = nil,
+			intermediate = intermediate,
 			---@type table<string, storage.inventory>
 			inventories = {},
 			---@type table<string, storage.inventory>
@@ -117,6 +117,7 @@ local retval = {
 				---@diagnostic disable-next-line
 				peripheral = peripheral.wrap(invName),
 				id = invName,
+				slots = {}
 			}
 			if o.peripheral == nil then return nil end
 			o.size = o.peripheral.size()
