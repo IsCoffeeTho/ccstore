@@ -122,10 +122,15 @@ end
 ---@param res ccStore.Server.Response
 local function handlePullRequest(req, res)
 	local recipientName = req.toInventory
-	local recipient = peripheral.wrap(recipientName)
-	if not publicModem.isPresentRemote(recipientName) or recipient == nil then
+	if not publicModem.isPresentRemote(recipientName) then
 		res.status = api.code.INVENTORY_INACCESSIBLE
-		res.send("Cannot see inventory")
+		res.send("Cannot see \""..recipientName.."\"")
+		return
+	end
+	local recipient = peripheral.wrap(recipientName)
+	if recipient == nil then
+		res.status = api.code.INVENTORY_INACCESSIBLE
+		res.send("Cannot bind to \""..recipientName.."\"")
 		return
 	end
 	res.ack()

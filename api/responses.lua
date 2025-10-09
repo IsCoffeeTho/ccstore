@@ -33,6 +33,9 @@ local Response = {
 		-- Alerts that an item is missing from the request inventory
 		ITEM_INACCESSIBLE = 43,
 		[43] = "ITEM_INACCESSIBLE",
+		-- Inventory passed is not an inventory
+		NOT_INVENTORY = 44,
+		[44] = "NOT_INVENTORY",
 
 		-- Suggests that the request has bad data or operation
 		BAD_REQUEST = 50,
