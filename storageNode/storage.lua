@@ -170,7 +170,7 @@ local retval = {
 				local lowestCountSlot = nil
 				for i, slot in ipairs(o.slots) do
 					if slot.itemId == itemId then
-						if lowestCountSlot == nil or lowestCountSlot.count < slot.count then
+						if lowestCountSlot == nil or lowestCountSlot.count > slot.count then
 							lowestCountSlot = slot
 						end
 					end
@@ -210,7 +210,7 @@ local retval = {
 			for name, o in pairs(storage.inventories) do
 				local found = o.find(itemId)
 				if found ~= nil then
-					if lowestCountSlot == nil or lowestCountSlot.count < found.count then
+					if lowestCountSlot == nil or lowestCountSlot.count > found.count then
 						lowestCountSlot = found
 					end
 				end
