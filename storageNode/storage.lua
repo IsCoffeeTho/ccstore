@@ -218,7 +218,7 @@ local retval = {
 			end
 			return lowestCountSlot
 		end
-		
+
 		function storage.count(itemId)
 			local accumulative = 0
 			for name, o in pairs(storage.inventories) do
@@ -240,12 +240,12 @@ local retval = {
 			end
 			return nil
 		end
-		
+
 		---@param slot integer
 		---@param item? ccTweaked.peripheral.item
 		---@return integer Amount of items pushed into system
 		function storage.push(slot, item)
-			item = item or intermediate.getItemDetail(slot) or {count = 0}
+			item = item or intermediate.getItemDetail(slot) or { count = 0 }
 			local prePushCount = item.count
 			while item.count > 0 do
 				local pushSlot = storage.find(item.name)
@@ -259,14 +259,15 @@ local retval = {
 			end
 			return prePushCount - item.count
 		end
-		
+
 		function storage.flush()
 			for slot, item in pairs(intermediate.list()) do
-				if not storage.push(slot, item) then return false end
+				local needsToPush = item.count
+				if storage.push(slot, item) ~= needsToPush then return false end
 			end
 			return true
 		end
-		
+
 		---@param itemId string
 		---@param count? integer
 		---@return integer Amount of items pulled from system
