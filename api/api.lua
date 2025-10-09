@@ -10,7 +10,7 @@ local function newMsgID(length)
 	local bucketLength = bucket:len()
 	for i = 1, length do
 		local r = math.random(bucketLength)
-		retval = retval + bucket[r]
+		retval = retval .. string.sub(bucket, r, r)
 	end
 	return retval
 end
