@@ -18,7 +18,6 @@ end
 print("Running interface daemon")
 
 while true do
-	imui.background()
 	interface.draw()
 	imui.await()
 end
