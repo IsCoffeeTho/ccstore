@@ -172,7 +172,9 @@ local retval = {
 				local lowestCountSlot = nil
 				for i, slot in ipairs(o.slots) do
 					if slot.itemId == itemId then
-						if lowestCountSlot == nil or lowestCountSlot.count < slot.count then
+						if lowestCountSlot == nil then
+							lowestCountSlot = slot
+						elseif lowestCountSlot.count < slot.count then
 							lowestCountSlot = slot
 						end
 					end
@@ -212,7 +214,9 @@ local retval = {
 			for name, o in pairs(storage.inventories) do
 				local found = o.find(itemId)
 				if found ~= nil then
-					if lowestCountSlot == nil or lowestCountSlot.count < found.count then
+					if lowestCountSlot == nil then
+						lowestCountSlot = found
+					elseif lowestCountSlot.count < found.count then
 						lowestCountSlot = found
 					end
 				end
@@ -253,8 +257,8 @@ local retval = {
 			item = item or intermediate.getItemDetail(slot) or { count = 0 }
 			local pushedTotal = 0
 			while item.count > 0 do
-				local pushSlot = storage.find(item.name)
-				if pushSlot == nil or pushSlot.free == 0 then
+				local pushSlot = storage.find(item.name) or { free = 0 }
+				if pushSlot.free == 0 then
 					print("storage push allocating a free slot")
 					local freeSlot = storage.getNextFree()
 					if freeSlot == nil then
@@ -275,7 +279,7 @@ local retval = {
 			for slot, item in pairs(intermediate.list()) do
 				local needsToPush = item.count
 				local pushed = storage.push(slot, item)
-				print("flush",slot,">",needsToPush,"-",pushed)
+				print("flush", slot, ">", needsToPush, "-", pushed)
 				if pushed ~= needsToPush then return false end
 			end
 			return true
