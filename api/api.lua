@@ -5,7 +5,7 @@ local requests = require("requests")
 ---@return string
 local function newMsgID(length)
 	length = length or 16
-	local bucket = ""
+	local bucket = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	local retval = ""
 	local bucketLength = bucket:len()
 	for i = 1, length do
