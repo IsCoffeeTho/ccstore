@@ -192,10 +192,8 @@ local retval = {
 			storage.inventories = {}
 			local devices = modem.getNamesRemote()
 			for _, deviceName in pairs(devices) do
-				if modem.getTypeRemote("inventory") then
-					if deviceName ~= intermediateName then
-						storage.inventories[deviceName] = inventory_t.new(deviceName)
-					end
+				if deviceName ~= intermediateName and modem.hasTypeRemote(deviceName, "inventory") then
+					storage.inventories[deviceName] = inventory_t.new(deviceName)
 				end
 			end
 		end
