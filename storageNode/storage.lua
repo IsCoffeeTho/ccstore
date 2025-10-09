@@ -32,7 +32,7 @@ local retval = {
 
 			local function markAsFree()
 				o.itemId = ""
-				o.used = 0
+				o.count = 0
 				o.maxCount = 64
 				o.free = o.maxCount - o.used
 				for i, slot in ipairs(o.inventory.slots) do -- delete from slot index
@@ -54,8 +54,6 @@ local retval = {
 				o.inventory.free = o.inventory.free - 1
 			end
 
-			table.insert(o.inventory.slots, o)
-
 			---Updates the slot info with real data
 			function o.update()
 				---@type ccTweaked.peripheral.itemDetails | nil
@@ -65,7 +63,7 @@ local retval = {
 					return
 				end
 				o.itemId = itemDetails.name
-				o.used = itemDetails.count
+				o.count = itemDetails.count
 				o.maxCount = itemDetails.maxCount
 				o.free = o.maxCount - o.used
 				markAsUsed()
