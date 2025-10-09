@@ -249,11 +249,13 @@ local retval = {
 		---@return integer Amount of items pushed into system
 		function storage.push(slot, item)
 			item = item or intermediate.getItemDetail(slot) or { count = 0 }
+			print("pushing", item.name)
 			local pushedTotal = 0
 			while item.count > 0 do
 				local pushSlot = storage.find(item.name) or { free = 0 }
+				print("find() found", pushSlot.free)
 				if pushSlot.free == 0 then
-					print("storage push allocating a free slot")
+					print("allocating a free slot")
 					local freeSlot = storage.getNextFree()
 					if freeSlot == nil then
 						print("stoage push ended early; full")
