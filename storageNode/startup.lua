@@ -83,7 +83,6 @@ else
 	return
 end
 
-
 ---@param req ccStore.Server.Request
 ---@param res ccStore.Server.Response
 local function handlePushRequest(req, res)
@@ -102,7 +101,7 @@ local function handlePushRequest(req, res)
 		return
 	end
 	res.ack()
-	storage.flush()
+	storage.flush() -- just in case
 	local count = req.count
 	if count == 0 then
 		count = item.maxCount
@@ -117,9 +116,6 @@ local function handlePushRequest(req, res)
 	end
 	res.status = api.code.OK
 	res.send("OK")
-	print("Reindexing...")
-	storage.reindexStorage()
-	print("Reindexed")
 end
 
 ---@param req ccStore.Server.Request
@@ -142,7 +138,7 @@ local function handlePullRequest(req, res)
 	print("Pulled item from storage")
 	if pulledCount < req.count then
 		res.status = api.code.PARTIAL_OK
-		res.send("OK")
+		res.send("PARTIAL OK")
 	else
 		res.status = api.code.OK
 		res.send("OK")
@@ -165,18 +161,19 @@ end
 print("Serving @", config.namespace)
 
 while true do
-	local request = server.recv()
-	if request.operation == "discover" then
-		if request.namespace == "*" or request.namespace == config.namespace then
-			request.response.status = api.code.SERVER_PRESENT
-			request.response.send(config.name)
+	local req = server.recv()
+	local res = req.response
+	if req.operation == "discover" then
+		if req.namespace == "*" or req.namespace == config.namespace then
+			res.status = api.code.SERVER_PRESENT
+			res.send(config.name)
 		end
-	elseif request.namespace == config.namespace then
-		local successful, err = pcall(handleRequest, request)
+	elseif req.namespace == config.namespace then
+	local successful, err = pcall(handleRequest, req)
 		if not successful then
-			if not request.response.sent then
-				request.response.status = api.code.ERROR
-				request.response.send("Internal Server Error")
+			if not res.sent then
+				res.status = api.code.ERROR
+				res.send("Internal Server Error")
 			end
 			print(err)
 		end

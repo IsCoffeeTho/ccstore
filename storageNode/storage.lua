@@ -273,7 +273,7 @@ local retval = {
 			for slot, item in pairs(intermediate.list()) do
 				local needsToPush = item.count
 				local pushed = storage.push(slot, item)
-				print("flush", slot, ">", needsToPush, "-", pushed)
+				print("flushed", slot, ">>", pushed, "/", needsToPush)
 				if pushed ~= needsToPush then return false end
 			end
 			return true

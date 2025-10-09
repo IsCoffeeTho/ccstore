@@ -112,6 +112,9 @@ local api = {
 				msgid = message.msgid,
 				status = responses.code.REQUEST_TIMEOUT,
 			}
+			if message.operation == "discover" then
+				retval.status = responses.code.EMPTY_NAMESPACE
+			end
 			modem.open(recvChannel)
 			modem.transmit(port, recvChannel, requests.toString(message))
 			local timeoutId = os.startTimer(10)
@@ -132,7 +135,7 @@ local api = {
 								if retval.body == nil then
 									retval.body = potential.body
 								else
-									retval.body = string.format("%s,%s", retval.body, potential.body)
+									retval.body = retval.body .. ',' .. potential.body
 								end
 							end
 						elseif potential.status == responses.code.ACK then
