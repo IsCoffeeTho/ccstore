@@ -121,7 +121,7 @@ end
 ---@param req ccStore.Server.Request
 ---@param res ccStore.Server.Response
 local function handlePullRequest(req, res)
-	local recipientName = req.fromInventory
+	local recipientName = req.toInventory
 	local recipient = peripheral.wrap(recipientName)
 	if not publicModem.isPresentRemote(recipientName) or recipient == nil then
 		res.status = api.code.INVENTORY_INACCESSIBLE
@@ -143,9 +143,6 @@ local function handlePullRequest(req, res)
 		res.status = api.code.OK
 		res.send("OK")
 	end
-	print("Reindexing...")
-	storage.reindexStorage()
-	print("Reindexed")
 end
 
 ---@param req ccStore.Server.Request
