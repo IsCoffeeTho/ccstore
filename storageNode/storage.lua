@@ -157,9 +157,11 @@ local retval = {
 				end
 				for slot_n, free in ipairs(freeSlots) do
 					if free then
+						print("inventory free found")
 						return slot_t.new(o, slot_n)
 					end
 				end
+				print("inventory full")
 				return nil
 			end
 
@@ -219,6 +221,8 @@ local retval = {
 			return lowestCountSlot
 		end
 
+		---@param itemId string
+		---@return integer
 		function storage.count(itemId)
 			local accumulative = 0
 			for name, o in pairs(storage.inventories) do
@@ -235,9 +239,11 @@ local retval = {
 			for name, o in pairs(storage.inventories) do
 				local free = o.getNextFree()
 				if free ~= nil then
+					print("storage free found")
 					return free
 				end
 			end
+			print("storage free not found; full")
 			return nil
 		end
 
@@ -246,24 +252,32 @@ local retval = {
 		---@return integer Amount of items pushed into system
 		function storage.push(slot, item)
 			item = item or intermediate.getItemDetail(slot) or { count = 0 }
-			local prePushCount = item.count
+			local pushedTotal = 0
 			while item.count > 0 do
 				local pushSlot = storage.find(item.name)
 				if pushSlot == nil or pushSlot.free == 0 then
+					print("storage push allocating a free slot")
 					local freeSlot = storage.getNextFree()
-					if freeSlot == nil then return prePushCount - item.count end
+					if freeSlot == nil then
+						print("stoage push ended early; full")
+						return pushedTotal
+					end
 					pushSlot = freeSlot
 				end
 				local pushed = pushSlot.push(intermediate, slot)
+				pushedTotal = pushedTotal + pushed
 				item.count = item.count - pushed
 			end
-			return prePushCount - item.count
+			print("stoage pushed item")
+			return pushedTotal
 		end
 
 		function storage.flush()
 			for slot, item in pairs(intermediate.list()) do
 				local needsToPush = item.count
-				if storage.push(slot, item) ~= needsToPush then return false end
+				local pushed = storage.push(slot, item)
+				print("flush",slot,">",needsToPush,"-",pushed)
+				if pushed ~= needsToPush then return false end
 			end
 			return true
 		end
