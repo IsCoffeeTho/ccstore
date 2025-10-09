@@ -7,209 +7,259 @@ local retval = {
 		local storage = {
 			---@type ccTweaked.peripheral.Inventory
 			intermediate = nil,
-			---@type table<string, ccTweaked.peripheral.Inventory>
+			---@type table<string, storage.inventory>
 			inventories = {},
-			---@type table<string, itemIdx>
-			itemIndex = {},
-			---@type table<string, itemFreeDescriptor> | table<'*', table<string, inventoryFreeDescriptor>>
-			freeIndex = {
-				["*"] = {}
-			},
-			---@type table<string, ccTweaked.peripheral.Inventory>
-			inventoriesToReIndex = {}
+			---@type table<string, storage.inventory>
+			uncached = {}
 		}
+
+		local slot_t = {}
+		---@param inventory storage.inventory
+		---@param slot_n integer
+		---@return storage.slot | nil
+		function slot_t.new(inventory, slot_n)
+			---@class storage.slot
+			---@field inventory storage.inventory
+			---@field slot_n integer
+			---@field itemId string
+			---@field count integer
+			---@field maxCount integer
+			---@field free integer
+			local o = {
+				inventory = inventory,
+				slot_n = slot_n
+			}
+
+			local function markAsFree()
+				o.itemId = ""
+				o.used = 0
+				o.maxCount = 64
+				o.free = o.maxCount - o.used
+				for i, slot in ipairs(o.inventory.slots) do -- delete from slot index
+					if slot == o then
+						table.remove(o.inventory.slots, i)
+						o.inventory.free = o.inventory.free + 1
+						return
+					end
+				end
+			end
+
+			local function markAsUsed()
+				for i, slot in ipairs(o.inventory.slots) do
+					if slot == o then
+						return
+					end
+				end
+				table.insert(o.inventory.slots, o)
+				o.inventory.free = o.inventory.free - 1
+			end
+
+			table.insert(o.inventory.slots, o)
+
+			---Updates the slot info with real data
+			function o.update()
+				---@type ccTweaked.peripheral.itemDetails | nil
+				local itemDetails = o.inventory.peripheral.getItemDetail(o.slot_n)
+				if itemDetails == nil then
+					markAsFree()
+					return
+				end
+				o.itemId = itemDetails.name
+				o.used = itemDetails.count
+				o.maxCount = itemDetails.maxCount
+				o.free = o.maxCount - o.used
+				markAsUsed()
+			end
+
+			o.update()
+
+			---Push items to slot
+			---@param inv ccTweaked.peripheral.Inventory The inventory from which the item resides
+			---@param slot integer The slot of the inventory from which the item resides
+			---@return integer Amount of items pushed to slot
+			function o.push(inv, slot)
+				local pushed = inv.pushItems(o.inventory.id, slot, o.free, o.slot_n)
+				o.update()
+				return pushed
+			end
+
+			---Pull items from slot
+			---@param inv ccTweaked.peripheral.Inventory The inventory to pull the item to
+			---@param slot? integer The slot of the inventory from which the item resides
+			---@return integer Amount of items pulled from slot
+			function o.pull(inv, slot)
+				local pulled = inv.pullItems(o.inventory.id, o.slot_n, o.free, slot)
+				o.update()
+				return pulled
+			end
+
+			---@return string
+			function o.toString()
+				return string.format("slot {\n  itemId: \"%s\",\n  count: %d,\n  free: %d,\n  total: %d\n}", o.itemId,
+					o.count, o.free, o.maxCount)
+			end
+
+			return o
+		end
+
+		---@class storage.inventory.static
+		local inventory_t = {}
+		---@param invName string
+		---@return storage.inventory | nil
+		function inventory_t.new(invName)
+			---@class storage.inventory
+			---@field peripheral ccTweaked.peripheral.Inventory wrap of peripheral
+			---@field id string Identifier on the network
+			---@field size integer Number of slots in peripheral
+			---@field free integer Number of slots that are empty in peripheral
+			---@field slots storage.slot[] Slot descriptors of slots with items in peripheral
+			local o = {
+				---@diagnostic disable-next-line
+				peripheral = peripheral.wrap(invName),
+				id = invName,
+			}
+			if o.peripheral == nil then return nil end
+			o.size = o.peripheral.size()
+
+			function o.update()
+				local itemList = o.peripheral.list()
+				o.free = o.size - #itemList
+
+				local freeSlots = {}
+				for i = 1, o.size do
+					table.insert(freeSlots, true)
+				end
+
+				for _, slot in pairs(o.slots) do
+					slot.update()
+					if slot.itemId ~= "" then
+						freeSlots[slot.slot_n] = false
+					end
+				end
+				for slot, item in pairs(itemList) do
+					if freeSlots[slot] then
+						slot_t.new(o, slot)
+					end
+				end
+			end
+
+			o.update()
+
+			---@return storage.slot | nil
+			function o.getNextFree()
+				---@type boolean[]
+				local freeSlots = {}
+				for i = 1, o.size do
+					table.insert(freeSlots, true)
+				end
+				for _, slot in pairs(o.slots) do
+					freeSlots[slot.slot_n] = false
+				end
+				for slot_n, free in ipairs(freeSlots) do
+					if free then
+						return slot_t.new(o, slot_n)
+					end
+				end
+				return nil
+			end
+
+			---@return storage.slot | nil
+			function o.find(itemId)
+				---@type storage.slot | nil
+				local lowestCountSlot = nil
+				for i, slot in ipairs(o.slots) do
+					if slot.itemId == itemId then
+						if lowestCountSlot == nil or lowestCountSlot.count < slot.count then
+							lowestCountSlot = slot
+						end
+					end
+				end
+				return lowestCountSlot
+			end
+
+			---@return string
+			function o.toString()
+				return string.format("inventory {\n  id: \"%s\",\n  used: %d,\n  free: %d,\n  total: %d\n}", o.id,
+					#o.slots, o.free, o.size)
+			end
+
+			return o
+		end
 
 		function storage.discoverInventories()
 			storage.inventories = {}
 			local devices = modem.getNamesRemote()
-			if #devices == 0 then
-				print("No devices on storage network")
-			end
-			local function discoverInventory(deviceName)
-				if deviceName == intermediateName then
-					return
-				end
-				local deviceType = modem.hasTypeRemote(deviceName, "inventory")
-				if deviceType == nil then
-					print("ERR: A device has shown up on the storage network but is not present ")
-					print("Please check hardware and try again")
-					return
-				end
-				if deviceType then
-					---@type ccTweaked.peripheral.Inventory
-					---@diagnostic disable-next-line
-					local device = peripheral.wrap(deviceName)
-					storage.inventories[deviceName] = device
-				else
-					print("Found", deviceName, "but device is not an inventory (could be erroneous)")
-				end
-			end
 			for _, deviceName in pairs(devices) do
-				discoverInventory(deviceName)
-			end
-			print("Discovered", #storage.inventories, "inventories")
-		end
-
-		---@param inventory ccTweaked.peripheral.Inventory
-		---@param invName? string
-		function storage.indexInventory(inventory, invName)
-			invName = invName or peripheral.getName(inventory) or ""
-
-			local items = inventory.list()
-			local size = inventory.size()
-			local freeSlots = size - #items
-			if freeSlots > 0 then
-				if storage.freeIndex['*'] == nil then
-					storage.freeIndex['*'] = {}
-				end
-				---@class inventoryFreeDescriptor
-				---@field inv ccTweaked.peripheral.Inventory
-				---@field slots integer[]
-				local invDesc = {
-					inv = inventory,
-					slots = {}
-				}
-				storage.freeIndex['*'][invName] = invDesc
-				for i = 1, size do
-					if items[i] == nil then
-						table.insert(invDesc.slots, i)
-					end
-				end
-			end
-			for slot, item in pairs(items) do
-				---@type ccTweaked.peripheral.itemDetails | nil
-				local itemDetails = inventory.getItemDetail(slot)
-				if itemDetails == nil then
-					print("there was a problem accessing an item")
-					return
-				end
-				if storage.itemIndex[item.name] == nil then
-					---@class itemIdx
-					local __itemidx = {
-						details = {
-							maxCount = itemDetails.maxCount
-						},
-						---@type table<string, storedDescriptor>
-						stored = {}
-					}
-					storage.itemIndex[item.name] = __itemidx
-				end
-				local itemidx = storage.itemIndex[item.name]
-				if itemidx.stored[invName] == nil then
-					---@class storedDescriptor
-					---@field inv ccTweaked.peripheral.Inventory
-					---@fiels slots integer[]
-					local storedDescriptor = {
-						inv = inventory,
-						slots = {}
-					}
-					itemidx.stored[invName] = storedDescriptor
-				end
-				local stored = itemidx.stored[invName]
-				table.insert(stored.slots, slot)
-				if itemDetails.count < itemDetails.maxCount then
-					if storage.freeIndex[item.name] == nil then
-						---@class itemFreeDescriptor
-						---@field inv ccTweaked.peripheral.Inventory
-						---@field slot integer
-						---@field free integer
-						local itemFreeDescriptor = {
-							inv = inventory,
-							slot = slot,
-							free = itemDetails.maxCount - itemDetails.count
-						}
-						storage.freeIndex[item.name] = itemFreeDescriptor
+				if modem.getTypeRemote("inventory") then
+					if deviceName ~= intermediateName then
+						storage.inventories[deviceName] = inventory_t.new(deviceName)
 					end
 				end
 			end
 		end
 
-		function storage.indexStorage()
-			storage.itemIndex = {}
-			storage.freeIndex = {
-				['*'] = {}
-			}
-			storage.inventoriesToReIndex = {}
-			for invName, inventory in pairs(storage.inventories) do
-				storage.indexInventory(inventory, invName)
+		function storage.index()
+			for _, o in pairs(storage.inventories) do
+				o.update()
 			end
 		end
 
-		function storage.reindexStorage()
-			for itemId, itemdesc in pairs(storage.itemIndex) do
-				for a, _ in pairs(itemdesc.stored) do
-					for b, _ in pairs(storage.inventoriesToReIndex) do
-						if a == b then
-							itemdesc.stored[a] = nil
-							break
-						end
-					end
-					if #itemdesc.stored == 0 then
-						storage.itemIndex[itemId] = nil
-						break
+		---@return storage.slot | nil
+		function storage.find(itemId)
+			---@type storage.slot | nil
+			local lowestCountSlot = nil
+			for name, o in pairs(storage.inventories) do
+				local found = o.find(itemId)
+				if found ~= nil then
+					if lowestCountSlot == nil or lowestCountSlot.count < found.count then
+						lowestCountSlot = found
 					end
 				end
 			end
-			for invName, inventory in pairs(storage.inventoriesToReIndex) do
-				storage.indexInventory(inventory, invName)
+			return lowestCountSlot
+		end
+		
+		function storage.count(itemId)
+			local accumulative = 0
+			for name, o in pairs(storage.inventories) do
+				local found = o.find(itemId)
+				if found ~= nil then
+					accumulative = accumulative + found.count
+				end
 			end
-			storage.inventoriesToReIndex = {}
+			return accumulative
 		end
 
-		---@return itemFreeDescriptor | nil
+		---@return storage.slot | nil
 		function storage.getNextFree()
-			local freeindex = storage.freeIndex['*']
-			if freeindex == nil then
-				return nil
+			for name, o in pairs(storage.inventories) do
+				local free = o.getNextFree()
+				if free ~= nil then
+					return free
+				end
 			end
-			if #freeindex ~= 0 then
-				return nil
-			end
-			local inventoryName = pairs(freeindex)(freeindex)
-			local freeDesc = freeindex[inventoryName]
-			if freeDesc == nil then return nil end
-			local inventory = freeDesc.inv
-			local freeSlot = freeDesc.slots[1]
-			return {
-				inv = inventory,
-				slot = freeSlot,
-				free = 64
-			}
-		end
-
-		---@param itemid string
-		---@return itemFreeDescriptor | nil
-		function storage.determineFree(itemid)
-			---@type itemFreeDescriptor
-			local freeindex = storage.freeIndex[itemid]
-			if freeindex == nil then
-				return storage.getNextFree()
-			end
-			if freeindex.free == 0 then
-				storage.freeIndex[itemid] = nil
-				return storage.getNextFree()
-			end
-			return freeindex
+			return nil
 		end
 		
 		---@param slot integer
 		---@param item? ccTweaked.peripheral.item
-		---@return boolean
+		---@return integer Amount of items pushed into system
 		function storage.push(slot, item)
 			item = item or intermediate.getItemDetail(slot) or {count = 0}
+			local prePushCount = item.count
 			while item.count > 0 do
-				local freeSlot = storage.determineFree(item.name)
-				if freeSlot == nil then return false end
-				local freeInvName = peripheral.getName(freeSlot.inv)
-				storage.inventoriesToReIndex[freeInvName] = freeSlot.inv
-				local pushed = freeSlot.inv.pullItems(intermediateName, slot, freeSlot.free, freeSlot.slot)
-				if pushed == 0 then return false end
-				freeSlot.free = freeSlot.free - pushed
+				local pushSlot = storage.find(item.name)
+				if pushSlot == nil or pushSlot.free == 0 then
+					local freeSlot = storage.getNextFree()
+					if freeSlot == nil then return prePushCount - item.count end
+					pushSlot = freeSlot
+				end
+				local pushed = pushSlot.push(intermediate, slot)
 				item.count = item.count - pushed
 			end
-			return true
+			return prePushCount - item.count
 		end
-
+		
 		function storage.flush()
 			for slot, item in pairs(intermediate.list()) do
 				if not storage.push(slot, item) then return false end
@@ -217,18 +267,25 @@ local retval = {
 			return true
 		end
 		
-		function storage.pullItem(itemId, count)
-			local itemIdx = storage.itemIndex[itemId]
-			if itemIdx == nil then
-				return 0
-			end
-			for invName, storedDesc in pairs(itemIdx.stored) do
-				local inv = storedDesc.inv
-				for _,slot in ipairs(storedDesc.slots) do
-					
+		---@param itemId string
+		---@param count? integer
+		---@return integer Amount of items pulled from system
+		function storage.pull(itemId, count)
+			count = count or 0
+			local pulled = 0
+			for name, o in pairs(storage.inventories) do
+				local found = o.find(itemId)
+				while found ~= nil do
+					if count == 0 then count = found.maxCount end
+					local pullCount = found.count < count and count or found.count
+					pullCount = intermediate.pullItems(o.id, found.slot_n, pullCount)
+					pulled = pulled + pullCount
+					if pulled >= count then
+						return pulled
+					end
 				end
 			end
-			return 0
+			return pulled
 		end
 
 		return storage
