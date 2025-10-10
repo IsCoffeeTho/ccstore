@@ -33,7 +33,7 @@ function interface.splash()
 	local nsdr = api.request({
 		operation = "discover",
 		namespace = "*",
-	}, 1000, 0.5, 5)
+	}, 1000, 0.5, 3)
 
 	if nsdr == nil then
 		return imui.error("local namespace discovery failed")
@@ -41,7 +41,6 @@ function interface.splash()
 	local namespaces = nsdr.body:gmatch("[^,]+")
 end
 
--- interface.draw = interface.splash
-interface.draw = interface.criticalError
+interface.draw = interface.splash
 
 return interface

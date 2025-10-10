@@ -16,9 +16,7 @@ end
 
 local function main()
 	local interface = require("interface")
-	
 	print("Running interface daemon")
-	
 	while true do
 		interface.draw()
 		imui.await()
