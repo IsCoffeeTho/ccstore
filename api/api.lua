@@ -101,12 +101,10 @@ local api = {
 		---@return ccStore.Response | nil returns a response from the server if the server responds, nil if server doesn't respond
 		local function request(message, port, timeout, timeoutCount)
 			port = port or 1000
-			timeout = timeout or 10
+			timeout = timeout or 2.5
 			timeoutCount = timeoutCount or 3
 			local recvChannel = math.random(10000, 19999)
-			while modem.isOpen(recvChannel) do
-				recvChannel = math.random(10000, 19999)
-			end
+			local keepOpen = modem.isOpen(recvChannel)
 			---@type ccStore.Response
 			local retval = {
 				msgid = message.msgid,
@@ -146,7 +144,7 @@ local api = {
 								---@diagnostic disable-next-line
 								_, side, channel, replyPort, data, distance = table.unpack(event)
 								if channel == recvChannel then
-									modem.close(recvChannel)
+									if not keepOpen then modem.close(recvChannel) end
 									---@diagnostic disable-next-line
 									return responses.fromString(data)
 								else
@@ -154,7 +152,7 @@ local api = {
 								end
 							end
 						else
-							modem.close(recvChannel)
+							if not keepOpen then modem.close(recvChannel) end
 							---@diagnostic disable-next-line
 							return potential
 						end
@@ -164,7 +162,7 @@ local api = {
 				end
 				os.queueEvent(table.unpack(event))
 			end
-			modem.close(recvChannel)
+			if not keepOpen then modem.close(recvChannel) end
 			return retval
 		end
 
