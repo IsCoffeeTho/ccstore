@@ -5,7 +5,6 @@ if periphemu then
 end
 
 local imui = require("imui")
-local interface = require("interface")
 
 term.clear()
 term.setCursorPos(1,1)
@@ -15,9 +14,18 @@ if not imui.init() then
 	return
 end
 
-print("Running interface daemon")
+local function main()
+	local interface = require("interface")
+	
+	print("Running interface daemon")
+	
+	while true do
+		interface.draw()
+		imui.await()
+	end
+end
 
-while true do
-	interface.draw()
-	imui.await()
+local worked, error = pcall(main)
+if not worked then
+	imui.error(error, "Unhandled exception; check console")
 end

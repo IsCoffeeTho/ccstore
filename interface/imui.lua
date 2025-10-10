@@ -104,6 +104,23 @@ function imui.await()
 	imui.awaitingButtons = false
 end
 
+---Function doesn't return but there is no @noreturn
+---@param err any
+---@param errorMessage? string
+function imui.error(err, errorMessage)
+	if type(err) == "string" then
+		errorMessage = errorMessage or err
+	end
+	errorMessage = errorMessage or "Unknown; Check console"
+	print("ERROR:", err)
+	imui.backgroundColor = colors.blue
+	imui.textColor = colors.white
+	imui.background()
+	imui.text(1, 1, "CRITICAL ERROR:")
+	imui.text(1, 2, errorMessage)
+	os.halt()
+end
+
 function imui.init()
 	if mon == nil then
 		return false
