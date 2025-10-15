@@ -31,7 +31,7 @@ function api.wrapServer(modem)
 			local request = requests.fromString(message)
 			if request == nil then
 				---@diagnostic disable-next-line
-				modem.transmit(replyPort, port, responses.toString({
+				modem.transmit(replyPort, server.port, responses.toString({
 					status = responses.code.MALFORMED_REQUEST,
 					msgid = "",
 				}))
@@ -55,14 +55,14 @@ function api.wrapServer(modem)
 				end
 				response.msgid = request.msgid
 				---@diagnostic disable-next-line
-				modem.transmit(replyPort, port, responses.toString(response))
+				modem.transmit(replyPort, server.port, responses.toString(response))
 				response.acknowledged = true
 				response.sent = true
 			end
 
 			function response.ack()
 				---@diagnostic disable-next-line
-				modem.transmit(replyPort, port, responses.toString({
+				modem.transmit(replyPort, server.port, responses.toString({
 					status = responses.code.ACK,
 					msgid = request.msgid
 				}))
@@ -71,18 +71,19 @@ function api.wrapServer(modem)
 
 			request.response = response
 			request.event = event
+
 			return request
 		end
 	end
 
 	---@param port? integer
 	function server.listen(port)
-		if server.port ~= -1 then error("") end
+		if server.port ~= -1 then error("Server is already listening") end
 		port = port or 1000
-
 		server.port = port
-		if not modem.isOpen(port) then
-			modem.open(port)
+		
+		if not modem.isOpen(server.port) then
+			modem.open(server.port)
 		end
 	end
 
