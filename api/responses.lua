@@ -76,6 +76,8 @@ function Response.fromString(data)
 		msgid = packet(),
 		status = tonumber(packet() or "40") or Response.code.ERROR
 	}
+	
+	print(packet)
 
 	local body = nil
 	for word in packet do
@@ -84,6 +86,8 @@ function Response.fromString(data)
 		else
 			body = body .. " " .. word
 		end
+		print("word =",word)
+		print("body =",body)
 	end
 	if body ~= nil then
 		message.body = body
