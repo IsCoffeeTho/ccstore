@@ -1,6 +1,6 @@
 term.clear()
 term.setCursorPos(1, 1)
-print("Starting storage node")
+print("Starting storage proxy")
 print("Importing config.lua")
 
 local config = require("config")
@@ -52,26 +52,24 @@ if not publicModem.isPresentRemote(config.publicIntermediate) then
 	print("FAILED: publicIntermediate is not present on publicNetwork")
 	return
 end
+---@type ccTweaked.peripheral.Inventory
+---@diagnostic disable-next-line
 local publicIntermediate = peripheral.wrap(config.publicIntermediate)
 if publicIntermediate == nil then
 	print("FAILED: publicIntermediate failed to bind")
 	return
 end
 
-local storageSystem = require("storage")
-
----@diagnostic disable-next-line
-local storage = storageSystem.wrap(localModem, localIntermediate)
-
 local ccstoreAPI = require("api")
-
+local ccstoreProxy = require("proxy")
 local server = ccstoreAPI.wrapServer(publicModem)
-server.listen()
 
-print("Discovering inventories")
-storage.discoverInventories()
+local proxy = ccstoreProxy.wrap(localModem, publicIntermediate)
+
+print("Discovering subnamespaces")
+proxy.discover()
 print("Flushing intermediate...")
-if storage.flush() then
+if proxy.flush() then
 	print("Flushed intermediate")
 else
 	print("FAILED: Couldn't flush intermediate")
@@ -96,14 +94,13 @@ local function handlePushRequest(req, res)
 		return
 	end
 	res.ack()
-	storage.flush() -- just in case
+	proxy.flush() -- just in case
 	local count = req.count
 	if count == 0 then
 		count = item.maxCount
 	end
-	print("Pushing item to storage")
 	publicIntermediate.pullItems(senderName, req.slot, count)
-	if not storage.flush() then
+	if not proxy.flush() then
 		publicIntermediate.pushItems(senderName, 1, count, req.slot)
 		res.status = ccstoreAPI.code.PARTIAL_OK
 		res.send("Storage System is full")
@@ -129,7 +126,7 @@ local function handlePullRequest(req, res)
 		return
 	end
 	res.ack()
-	local pulledCount = storage.pullItem(req.item, req.count)
+	local pulledCount = proxy.pullItem(req.item, req.count)
 	if pulledCount == 0 then
 		res.status = ccstoreAPI.code.ITEM_EMPTY
 		res.send("We do not have that :(")
@@ -167,8 +164,8 @@ local function handleRequest(req)
 	end
 end
 
+server.listen()
 print("Serving @", config.namespace)
-
 while true do
 	local req = server.recv()
 	local res = req.response

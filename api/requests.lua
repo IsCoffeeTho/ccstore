@@ -1,18 +1,32 @@
 local Request = {}
 
+---@param length? integer Default: `16`
+---@return string
+function Request.genMsgID(length)
+	length = length or 16
+	local bucket = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	local retval = ""
+	local bucketLength = bucket:len()
+	for i = 1, length do
+		local r = math.random(bucketLength)
+		retval = retval .. string.sub(bucket, r, r)
+	end
+	return retval
+end
+
 ---@param data string
 ---@return ccStore.Request | nil
 function Request.fromString(data)
-	---@class ccStore.RequestMessage
+	---@class ccStore.RequestMessageFormat
 	---@field namespace string
 	---@field msgid string
 	---@field operation string
 	---@field raw string
 
-	---@class ccStore.RequestMessage.nil: ccStore.RequestMessage
+	---@class ccStore.RequestMessage.nil: ccStore.RequestMessageFormat
 	---@field operation ""
 
-	---@class ccStore.Request: ccStore.RequestMessage.nil | ccStore.RequestMessage.Discover | ccStore.RequestMessage.Free | ccStore.RequestMessage.Push | ccStore.RequestMessage.Pull | ccStore.RequestMessage.Search
+	---@class ccStore.RequestMessage: ccStore.RequestMessage.nil | ccStore.RequestMessage.Discover | ccStore.RequestMessage.Free | ccStore.RequestMessage.Push | ccStore.RequestMessage.Pull | ccStore.RequestMessage.Search
 
 	local packet = string.gmatch(data, "[^ ]+")
 
@@ -23,18 +37,18 @@ function Request.fromString(data)
 		msgid = packet(),
 		operation = packet(),
 	}
-	---@class ccStore.RequestMessage.Discover: ccStore.RequestMessage
+	---@class ccStore.RequestMessage.Discover: ccStore.RequestMessageFormat
 	---@field operation "discover"
 	
-	---@class ccStore.RequestMessage.Free: ccStore.RequestMessage
+	---@class ccStore.RequestMessage.Free: ccStore.RequestMessageFormat
 	---@field operation "free"
 
 	if message.operation == "discover" or message.operation == "free" then
 		return message
 	elseif message.operation == "push" then
-		---@class ccStore.RequestMessage.Push: ccStore.RequestMessage
+		---@class ccStore.RequestMessage.Push: ccStore.RequestMessageFormat
 		---@field operation "push"
-		---@field fromInventory string 
+		---@field fromInventory string
 		---@field slot integer 1st indexed slot number of the inventory which holds the item
 		---@field count integer *Optional* count of items to push, if unset or set to `0` it is assumed that the whole stack is to be pushed
 
@@ -52,17 +66,17 @@ function Request.fromString(data)
 			message.count = 0
 		end
 	elseif message.operation == "pull" then
-		---@class ccStore.RequestMessage.Pull: ccStore.RequestMessage
+		---@class ccStore.RequestMessage.Pull: ccStore.RequestMessageFormat
 		---@field operation "pull"
+		---@field toInventory string Formatted as "<inventory>" 
 		---@field item string item_id of item to pull from storage
 		---@field count integer count of items to pull
-		---@field toInventory string Formatted as "<inventory>" 
 
+		message.toInventory = packet()
 		message.item = packet()
 		message.count = tonumber(packet())
-		message.toInventory = packet()
 	elseif message.operation == "search" then
-		---@class ccStore.RequestMessage.Search: ccStore.RequestMessage
+		---@class ccStore.RequestMessage.Search: ccStore.RequestMessageFormat
 		---@field operation "search"
 		---@field query string Search query, can be an itemID or an item name
 		---@field fuzzy boolean Describes whether the search will be inexact and will try to return similar items (name-wise)
@@ -88,7 +102,7 @@ function Request.fromString(data)
 	return message
 end
 
----@param req ccStore.RequestMessage
+---@param req ccStore.RequestMessage<any>
 ---@return string 
 function Request.toString(req)
 	if req.operation == "" then
@@ -103,7 +117,7 @@ function Request.toString(req)
 		---@type ccStore.RequestMessage.Pull
 		---@diagnostic disable-next-line
 		local op = req
-		bodyLine = string.format("%s %d %s", op.item, op.count, op.toInventory)
+		bodyLine = string.format("%s %s %d", op.toInventory, op.item, op.count)
 	elseif req.operation == "push" then
 		---@type ccStore.RequestMessage.Push
 		---@diagnostic disable-next-line

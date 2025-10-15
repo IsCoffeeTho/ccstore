@@ -30,15 +30,14 @@ function interface.splash()
 	print("Loading storage system...")
 	imui.text(1, 2, "Loading storage system...")
 
-	local nsdr = api.request({
-		operation = "discover",
-		namespace = "*",
-	}, 1000, 0.5, 3)
+	local nsdr = api.discover("*", 1000, 0.5, 3)
 
 	if nsdr == nil then
 		return imui.error("local namespace discovery failed")
 	end
-	local namespaces = nsdr.body:gmatch("[^,]+")
+	for namespace in nsdr do
+		print(namespace)
+	end
 end
 
 interface.draw = interface.splash

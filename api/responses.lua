@@ -52,6 +52,9 @@ local Response = {
 		-- Server was hit but request was bad
 		MALFORMED_REQUEST = 54,
 		[54] = "MALFORMED_REQUEST",
+		-- Server has not implemented something to do with this request
+		NOT_IMPLEMENTED = 55,
+		[55] = "NOT_IMPLEMENTED",
 		-- Server(s) did not respond in time
 		REQUEST_TIMEOUT = 59,
 		[59] = "REQUEST_TIMEOUT"
