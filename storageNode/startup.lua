@@ -175,10 +175,15 @@ while true do
 	if req.operation == "discover" then
 		---@diagnostic disable-next-line
 		---@cast req ccStore.Server.Request.Discover
+		
+		print(string.format("Discover request for \"%s\"", req.namespace))
+		
 		if req.namespace == "*" or req.namespace == config.namespace then
 			res.status = ccstoreAPI.code.SERVER_PRESENT
 			res.send(config.name)
 		end
+		
+		
 		return
 	elseif req.namespace == config.namespace then
 		local successful, err = pcall(handleRequest, req)
