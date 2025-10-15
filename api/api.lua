@@ -130,35 +130,38 @@ function api.wrapClient(modem)
 				local _, side, channel, replyPort, data, distance = table.unpack(event)
 				---@diagnostic disable-next-line
 				potential = responses.fromString(data)
-				if potential.msgid == message.msgid then
-					if message.operation == "discover" then
-						if potential.status == responses.code.SERVER_PRESENT then
-							retval.status = responses.code.SERVER_PRESENT
-							if retval.body == nil then
-								retval.body = potential.body
-							else
-								retval.body = retval.body .. ',' .. potential.body
+				if potential ~= nil then
+					if potential.msgid == message.msgid then
+						if message.operation == "discover" then
+							if potential.status == responses.code.SERVER_PRESENT then
+								retval.status = responses.code.SERVER_PRESENT
+								print(string.format("Recieved %s", textutils.serialise(potential)))
+								if retval.body == nil then
+									retval.body = potential.body
+								else
+									retval.body = retval.body .. ',' .. potential.body
+								end
 							end
-						end
-					elseif potential.status == responses.code.ACK then
-						while true do
-							---@type ["modem_message", string, string, integer, boolean|string|number|table, number|nil]
-							---@diagnostic disable-next-line
-							local event = { os.pullEvent("modem_message") }
-							---@diagnostic disable-next-line
-							_, side, channel, replyPort, data, distance = table.unpack(event)
-							if channel == recvChannel then
-								if not keepOpen then modem.close(recvChannel) end
+						elseif potential.status == responses.code.ACK then
+							while true do
+								---@type ["modem_message", string, string, integer, boolean|string|number|table, number|nil]
 								---@diagnostic disable-next-line
-								return responses.fromString(data)
-							else
-								os.queueEvent(table.unpack(event))
+								local event = { os.pullEvent("modem_message") }
+								---@diagnostic disable-next-line
+								_, side, channel, replyPort, data, distance = table.unpack(event)
+								if channel == recvChannel then
+									if not keepOpen then modem.close(recvChannel) end
+									---@diagnostic disable-next-line
+									return responses.fromString(data)
+								else
+									os.queueEvent(table.unpack(event))
+								end
 							end
+						else
+							if not keepOpen then modem.close(recvChannel) end
+							---@diagnostic disable-next-line
+							return potential
 						end
-					else
-						if not keepOpen then modem.close(recvChannel) end
-						---@diagnostic disable-next-line
-						return potential
 					end
 				end
 			elseif eventName == "timer" and event[2] == timeoutId then

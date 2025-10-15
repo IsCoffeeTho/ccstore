@@ -153,8 +153,8 @@ local function handleSearchRequest(req, res)
 end
 
 ---@param req ccStore.Server.Request
-local function handleRequest(req)
-	local res = req.response
+---@param res ccStore.Server.Response
+local function handleRequest(req, res)
 	if req.operation == "push" then
 		---@diagnostic disable-next-line
 		handlePushRequest(req, res)
@@ -167,26 +167,33 @@ local function handleRequest(req)
 	end
 end
 
+---@param req ccStore.RequestMessage.Discover
+---@param res ccStore.Server.Response
+local function handleDiscover(req, res)
+	print(string.format("Discover request for \"%s\"", req.namespace))
+	
+	if req.namespace == "*" or req.namespace == config.namespace then
+		res.status = ccstoreAPI.code.SERVER_PRESENT
+		res.send(config.name)
+	end
+end
+
 print("Serving @", config.namespace)
 
 while true do
 	local req = server.recv()
 	local res = req.response
 	if req.operation == "discover" then
-		---@diagnostic disable-next-line
-		---@cast req ccStore.Server.Request.Discover
-		
-		print(string.format("Discover request for \"%s\"", req.namespace))
-		
-		if req.namespace == "*" or req.namespace == config.namespace then
-			res.status = ccstoreAPI.code.SERVER_PRESENT
-			res.send(config.name)
+		local successful, err = pcall(handleDiscover, req, res)
+		if not successful then
+			if not res.sent then
+				res.status = ccstoreAPI.code.ERROR
+				res.send("Internal Server Error")
+			end
+			print(err)
 		end
-		
-		
-		return
 	elseif req.namespace == config.namespace then
-		local successful, err = pcall(handleRequest, req)
+		local successful, err = pcall(handleRequest, req, res)
 		if not successful then
 			if not res.sent then
 				res.status = ccstoreAPI.code.ERROR
