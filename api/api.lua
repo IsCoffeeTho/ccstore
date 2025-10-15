@@ -48,6 +48,7 @@ function api.wrapServer(modem)
 				sent = false,
 				msgid = request.msgid
 			}
+
 			---@param body? string
 			function response.send(body)
 				if body ~= nil then
@@ -181,7 +182,8 @@ function api.wrapClient(modem)
 			operation = "discover"
 		}, port, timeout, timeoutCount)
 		if res == nil then return emptyIterator end
-		if res.status == 29 then return emptyIterator end
+		if res.status ~= responses.code.SERVER_PRESENT then return emptyIterator end
+		print(textutils.serialise(res))
 		return string.gmatch(res.body, "[^,]+")
 	end
 

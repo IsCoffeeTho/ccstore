@@ -13,9 +13,6 @@ local Response = {
 		-- Request was handled but not fully
 		PARTIAL_OK = 21,
 		[21] = "PARTIAL_OK",
-		-- Discover was unsuccessful
-		EMPTY_NAMESPACE = 28,
-		[28] = "EMTPY_NAMESPACE",
 		-- Discover was successful
 		SERVER_PRESENT = 29,
 		[29] = "SERVER_PRESENT",
@@ -36,6 +33,9 @@ local Response = {
 		-- Inventory passed is not an inventory
 		NOT_INVENTORY = 44,
 		[44] = "NOT_INVENTORY",
+		-- Discover was unsuccessful
+		EMPTY_NAMESPACE = 49,
+		[49] = "EMTPY_NAMESPACE",
 
 		-- Suggests that the request has bad data or operation
 		BAD_REQUEST = 50,
