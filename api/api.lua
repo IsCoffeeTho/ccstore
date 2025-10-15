@@ -4,7 +4,7 @@ local requests = require("requests")
 local api = {
 	code = responses.code,
 	server = require("server"),
-	client = require("client"),
+	client = require("client")
 }
 
 ---@param modem ccTweaked.peripheral.Modem
@@ -106,7 +106,7 @@ function api.wrapClient(modem)
 		timeoutCount = timeoutCount or 3
 		local recvChannel = math.random(10000, 19999)
 		local keepOpen = modem.isOpen(recvChannel)
-		message.msgid = api.newMsgID()
+		message.msgid = requests.genMsgID()
 		---@type ccStore.Response
 		local retval = {
 			msgid = message.msgid,
