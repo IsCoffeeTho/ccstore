@@ -77,7 +77,6 @@ function Response.fromString(data)
 		status = tonumber(packet() or "40") or Response.code.ERROR
 	}
 
-	print(packet)
 	local body = nil
 	for word in packet do
 		if body == nil then
@@ -85,8 +84,6 @@ function Response.fromString(data)
 		else
 			body = body .. " " .. word
 		end
-		print("word =", word)
-		print("body =", body)
 	end
 	if body ~= nil then
 		message.body = body
@@ -99,12 +96,9 @@ end
 function Response.toString(res)
 	local msg = string.format("%s %02d", res.msgid or "", res.status or Response.code.ERROR)
 	if res.body == nil then
-		print("sending response =", msg)
 		return msg
 	end
-	msg = string.format("%s %s", msg, res.body)
-	print("sending response =", msg)
-	return msg
+	return string.format("%s %s", msg, res.body)
 end
 
 return Response

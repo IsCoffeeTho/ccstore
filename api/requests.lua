@@ -94,7 +94,7 @@ function Request.fromString(data)
 		else
 			message.fuzzy = query[1] == "~"
 			if message.fuzzy then
-				query = query:sub(2)
+				query = string.sub(query, 2)
 			end
 			message.query = query
 		end

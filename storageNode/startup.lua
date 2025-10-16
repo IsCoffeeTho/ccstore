@@ -101,7 +101,6 @@ local function handlePushRequest(req, res)
 	if count == 0 then
 		count = item.maxCount
 	end
-	print("Pushing item to storage")
 	publicIntermediate.pullItems(senderName, req.slot, count)
 	if not storage.flush() then
 		publicIntermediate.pushItems(senderName, 1, count, req.slot)
@@ -135,7 +134,6 @@ local function handlePullRequest(req, res)
 		res.send("We do not have that :(")
 		return
 	end
-	print("Pulled item from storage")
 	if pulledCount < req.count then
 		res.status = ccstoreAPI.code.PARTIAL_OK
 		res.send("PARTIAL OK")
@@ -174,7 +172,7 @@ local function handleDiscover(req, res)
 	if req.namespace == "*" or req.namespace == config.namespace then
 		print("Responding")
 		res.status = ccstoreAPI.code.SERVER_PRESENT
-		res.send(config.name)
+		res.send(config.namespace)
 	else
 		print("Dropping")
 	end
