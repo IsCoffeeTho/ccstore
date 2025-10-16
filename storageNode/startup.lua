@@ -172,8 +172,11 @@ end
 local function handleDiscover(req, res)
 	print(string.format("Discover request for \"%s\"", req.namespace))
 	if req.namespace == "*" or req.namespace == config.namespace then
+		print("Responding")
 		res.status = ccstoreAPI.code.SERVER_PRESENT
 		res.send(config.name)
+	else
+		print("Dropping")
 	end
 end
 
