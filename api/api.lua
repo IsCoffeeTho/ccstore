@@ -166,8 +166,9 @@ function api.wrapClient(modem)
 				end
 			elseif eventName == "timer" and event[2] == timeoutId then
 				timeoutCount = timeoutCount - 1
+			else	
+				os.queueEvent(table.unpack(event))
 			end
-			os.queueEvent(table.unpack(event))
 		end
 		if not keepOpen then modem.close(recvChannel) end
 		return retval

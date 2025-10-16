@@ -99,10 +99,11 @@ end
 function Response.toString(res)
 	local msg = string.format("%s %02d", res.msgid or "", res.status or Response.code.ERROR)
 	if res.body == nil then
+		print("sending response =", msg)
 		return msg
 	end
 	msg = string.format("%s %s", msg, res.body)
-	print("sending response =",msg)
+	print("sending response =", msg)
 	return msg
 end
 
