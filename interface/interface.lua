@@ -20,23 +20,32 @@ local interface = {
 
 function interface.splash()
 	imui.background()
-	print("Sending wakeup...")
+	local function log(text)
+		print(text)
+		imui.print(text)
+	end
+	
+	log("Sending wakeup...")
 	imui.text(1, 1, "Sending wakeup...")
 	for _, name in ipairs(modem.getNamesRemote()) do
 		if modem.hasTypeRemote(name, "computer") then
 			peripheral.wrap(name).turnOn()
 		end
 	end
-	print("Loading storage system...")
-	imui.text(1, 2, "Loading storage system...")
+	log("Discovering storage systems...")
 
 	local nsdr = api.discover("*", 1000, 0.5, 3)
 
 	if nsdr == nil then
 		return imui.error("local namespace discovery failed")
 	end
+	log("Indexing...")
 	for namespace in nsdr do
 		print(namespace)
+	end
+	log("HALTED; check console")
+	while true do
+		os.sleep(1)
 	end
 end
 

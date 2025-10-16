@@ -84,6 +84,11 @@ function imui.text(x, y, text)
 	mon.write(text)
 end
 
+---@param text string
+function imui.print(text)
+	mon.write(text.."\n")
+end
+
 function imui.await()
 	local timeout = os.startTimer(0.05)
 	while true do
