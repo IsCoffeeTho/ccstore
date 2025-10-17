@@ -17,9 +17,9 @@ end
 ---@diagnostic disable-next-line
 local modem = peripheral.wrap("back")
 
-local db = require("db")
+local databaseAPI = require("db")
 
-db.wrap(modem)
+local db = databaseAPI.wrap(modem)
 
 local function main()
 	local function interface_main()
