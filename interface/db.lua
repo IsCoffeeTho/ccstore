@@ -18,9 +18,10 @@ end
 local database = {
 }
 
+---@param modem ccTweaked.peripheral.WiredModem
 function database.wrap(modem)
 	---@class database
-	o = {
+	local o = {
 		---@type table<string, database.storageServer>
 		servers = {},
 		api = ccStore.wrapClient(modem)

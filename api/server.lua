@@ -3,10 +3,13 @@ local requests = require("requests")
 
 local server = {}
 
-function server.new(o, modem)
-	o = o or {}
+---@param modem ccTweaked.peripheral.Modem
+function server.new(modem)
 	
-	o.port = -1
+	---@class ccStore.server
+	local o = {
+		port = -1
+	}
 	
 	local requestQueue = {}
 	

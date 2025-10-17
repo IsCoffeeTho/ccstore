@@ -6,13 +6,15 @@ local client = {}
 ---@param modem ccTweaked.peripheral.WiredModem
 ---@param port? integer Port that the API is using
 ---@param timeout? integer Time in seconds to wait for a response
-function client.new(o, modem, port, timeout)
+function client.new(modem, port, timeout)
 	port = port or 1000
 	timeout = timeout or 2.5
 
-	o = o or {}
+	---@class ccStore.client
+	local o = {
+		code = responses.code
+	}
 
-	o.code = responses.code
 	
 	---@type ccStore.QueuedRequest[]
 	local waitingQueue = {}

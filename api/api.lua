@@ -6,12 +6,12 @@ local api = {
 
 ---@param modem ccTweaked.peripheral.WiredModem
 function api.wrapServer(modem)
-	return api.server.new({}, modem)
+	return api.server.new(modem)
 end
 
 ---@param modem ccTweaked.peripheral.WiredModem
 function api.wrapClient(modem)
-	return api.client.new({}, modem)
+	return api.client.new(modem)
 end
 
 return api
