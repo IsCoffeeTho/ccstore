@@ -34,6 +34,7 @@ function interface.splash()
 
 	log("Discovering storage systems...")
 	if not db.discover() then
+		
 		return imui.error("local namespace discovery failed")
 	end
 	log("Storage System is ready")
@@ -46,6 +47,7 @@ end
 function interface.refresh()
 	imui.background()
 	imui.print("STORAGE SYSTEM")
+	os.halt()
 end
 
 interface.draw = interface.splash

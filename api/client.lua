@@ -7,6 +7,10 @@ function client.new(o, modem)
 	o = o or {}
 
 	o.code = responses.code
+	
+	function o.poll()
+		---@TODO IMPLEMENT
+	end
 
 	---@param message ccStore.Request
 	---@param port? integer Port that the API is using.
@@ -20,19 +24,9 @@ function client.new(o, modem)
 		local recvChannel = math.random(10000, 19999)
 		local keepOpen = modem.isOpen(recvChannel)
 		message.msgid = requests.genMsgID()
-		---@type ccStore.Response
-		local retval = {
-			msgid = message.msgid,
-			status = responses.code.REQUEST_TIMEOUT,
-		}
-		if message.operation == "discover" then
-			retval.status = responses.code.EMPTY_NAMESPACE
-		end
 		modem.open(recvChannel)
 		modem.transmit(port, recvChannel, requests.toString(message))
-		
 		if not keepOpen then modem.close(recvChannel) end
-		return retval
 	end
 
 	---@param namespace? string

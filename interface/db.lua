@@ -26,12 +26,15 @@ end
 
 function db.discover()
 	local foundNames = {}
-
+	
+	print("API.Discover >> \"*\"")
 	for namespace in db.api.discover("*") do
+		print(string.format("found namespace \"%s\"", namespace))
 		foundNames[namespace] = db.servers[namespace] or false
 	end
 	
 	if #foundNames == 0 then
+		print("No servers responded in time.")
 		db.servers = {}
 		return false
 	end
