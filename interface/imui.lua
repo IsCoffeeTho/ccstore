@@ -18,6 +18,7 @@ local imui = {
 
 function imui.background()
 	mon.setBackgroundColor(imui.backgroundColor)
+	mon.setCursorPos(1,1)
 	mon.clear()
 end
 
