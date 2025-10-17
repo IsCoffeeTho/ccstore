@@ -33,8 +33,7 @@ function interface.splash()
 	end
 
 	log("Discovering storage systems...")
-	db.discover()
-	if #db.servers then
+	if not db.discover() then
 		return imui.error("local namespace discovery failed")
 	end
 
