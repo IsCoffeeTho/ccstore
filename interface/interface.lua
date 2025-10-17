@@ -11,42 +11,40 @@ end
 ---@diagnostic disable-next-line
 local modem = peripheral.wrap("back")
 
-local ccstore = require("api")
-local api = ccstore.wrapClient(modem)
+local db = require("db")
 
-local interface = {
-	namespaces = {}
-}
+db.wrap(modem)
+
+local interface = {}
+
+local function log(text)
+	print(text)
+	imui.print(text)
+end
 
 function interface.splash()
 	imui.background()
-	local function log(text)
-		print(text)
-		imui.print(text)
-	end
-	
+
 	log("Sending wakeup...")
-	imui.text(1, 1, "Sending wakeup...")
 	for _, name in ipairs(modem.getNamesRemote()) do
 		if modem.hasTypeRemote(name, "computer") then
 			peripheral.wrap(name).turnOn()
 		end
 	end
+
 	log("Discovering storage systems...")
-
-	local nsdr = api.discover("*", 1000, 0.5, 3)
-
-	if nsdr == nil then
+	db.discover()
+	if #db.servers then
 		return imui.error("local namespace discovery failed")
 	end
-	log("Indexing...")
-	for namespace in nsdr do
-		print(namespace)
-	end
-	log("HALTED; check console")
-	while true do
-		os.sleep(1)
-	end
+
+	log("Storage System is ready")
+	os.sleep(1)
+	interface.draw = interface.refresh
+end
+
+function interface.refresh()
+
 end
 
 interface.draw = interface.splash

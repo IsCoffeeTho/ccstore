@@ -1,5 +1,6 @@
 term.clear()
 term.setCursorPos(1, 1)
+redstone.setOutput("top", false)
 print("Starting storage node")
 print("Importing config.lua")
 
@@ -153,7 +154,10 @@ end
 ---@param req ccStore.Server.Request
 ---@param res ccStore.Server.Response
 local function handleRequest(req, res)
-	if req.operation == "push" then
+	if req.operation == "ping" then
+		res.status = ccstoreAPI.code.PONG
+		res.send("PONG")
+	elseif req.operation == "push" then
 		---@diagnostic disable-next-line
 		handlePushRequest(req, res)
 	elseif req.operation == "pull" then
@@ -168,17 +172,15 @@ end
 ---@param req ccStore.RequestMessage.Discover
 ---@param res ccStore.Server.Response
 local function handleDiscover(req, res)
-	print(string.format("Discover request for \"%s\"", req.namespace))
 	if req.namespace == "*" or req.namespace == config.namespace then
-		print("Responding")
 		res.status = ccstoreAPI.code.SERVER_PRESENT
 		res.send(config.namespace)
-	else
-		print("Dropping")
 	end
 end
 
 print("Serving @", config.namespace)
+
+redstone.setOutput("top", true)
 
 while true do
 	local req = server.recv()

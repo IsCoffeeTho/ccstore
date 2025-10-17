@@ -109,7 +109,7 @@ function Request.toString(req)
 		return ""
 	end
 	local requestLine = string.format("%s %s %s", req.namespace, req.msgid, req.operation)
-	if req.operation == "discover" or req.operation == "free" then
+	if req.operation == "discover" or req.operation == "ping" then
 		return requestLine
 	end
 	local bodyLine = ""

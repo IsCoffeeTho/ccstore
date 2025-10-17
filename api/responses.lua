@@ -6,6 +6,10 @@ local Response = {
 		-- Request is being handled
 		ACK = 05,
 		[05] = "ACK",
+		
+		-- Reply to a ping request
+		PONG = 09,
+		[09] = "PONG",
 
 		-- Request was handled
 		OK = 20,
