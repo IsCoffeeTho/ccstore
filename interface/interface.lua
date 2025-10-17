@@ -9,7 +9,7 @@ function interface.wrap(db)
 		imui.print(text)
 	end
 	
-	function o.splash()
+	function o.boot()
 		imui.background()
 
 		log("Sending wakeup...")
@@ -23,16 +23,16 @@ function interface.wrap(db)
 		os.sleep(1)
 		imui.backgroundColor = colors.pink
 		imui.textColor = colors.white
-		o.draw = o.refresh
+		o.draw = o.splash
 	end
 	
-	function o.refresh()
+	function o.splash()
 		imui.background()
 		imui.print("STORAGE SYSTEM")
 		os.halt()
 	end
 	
-	o.draw = o.splash
+	o.draw = o.boot
 	
 	---@class interface
 	o = {}

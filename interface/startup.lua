@@ -23,10 +23,18 @@ local db = databaseAPI.wrap(modem)
 
 local function main()
 	local function interface_main()
-		local interface = require("interface")
-		interface.wrap(db)
+		local interfaceSys = require("interface")
+		local interface = interfaceSys.wrap(db)
+		if interface == nil then
+			error("Failed to start interface")
+			return
+		end
 		print("Running interface daemon")
 		while true do
+			if interface.draw == nil then
+				error("interface.draw was set to a nil value")
+				return
+			end
 			interface.draw()
 			imui.await()
 		end
