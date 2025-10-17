@@ -1,10 +1,9 @@
----@diagnostic disable-next-line
-if periphemu then
-	---@diagnostic disable-next-line
-	periphemu.create("top", "monitor")
-end
-
 local imui = require("imui")
+
+function os.halt()
+	::halt_loop::
+	goto halt_loop
+end
 
 term.clear()
 term.setCursorPos(1,1)
@@ -25,6 +24,7 @@ db.wrap(modem)
 local function main()
 	local function interface_main()
 		local interface = require("interface")
+		interface.wrap(db)
 		print("Running interface daemon")
 		while true do
 			interface.draw()
@@ -35,6 +35,7 @@ local function main()
 	local worked, error = pcall(interface_main)
 	if not worked then
 		imui.error(error, "Unhandled exception; check console")
+		os.halt()
 	end
 end
 

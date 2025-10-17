@@ -1,72 +1,81 @@
 local ccStore = require("api")
 
-local dbServer = {}
+local storageServer = {}
 
-function dbServer.new(namespace)
-	---@class database.server
+function storageServer.new(namespace)
+	---@class database.storageServer
 	local o = {
-		namespace=namespace
+		namespace = namespace
 	}
-	
+
 	function o.index()
-		
+
 	end
-	
+
 	return o
 end
 
-local db = {
-	---@type table<string, database.server>
-	servers = {}
+local database = {
 }
 
-function db.wrap(modem)
-	db.api = ccStore.wrapClient(modem)
-end
+function database.wrap(modem)
+	---@class database
+	o = {
+		---@type table<string, database.storageServer>
+		servers = {},
+		api = ccStore.wrapClient(modem)
+	}
 
-function db.discover()
-	local foundNames = {}
-	
-	print("API.Discover >> \"*\"")
-	for namespace in db.api.discover("*") do
-		print(string.format("found namespace \"%s\"", namespace))
-		foundNames[namespace] = db.servers[namespace] or false
-	end
-	
-	if #foundNames == 0 then
-		print("No servers responded in time.")
-		db.servers = {}
-		return false
-	end
-	
-	for serverName, server in pairs(db.servers) do -- remove servers known that aren't found
-		local found = false
-		for foundName, foundServer in pairs(foundNames) do
-			if foundName == serverName then
-				found = true
-				break
+	function o.wakeLAN()
+		for _, name in ipairs(modem.getNamesRemote()) do
+			if modem.hasTypeRemote(name, "computer") then
+				peripheral.wrap(name).turnOn()
 			end
 		end
-		if not found then
-			db.servers[serverName] = nil
-		end
 	end
-	
-	for foundName, foundServer in pairs(foundNames) do -- add servers aren't known that are found
-		local found = false
-		for serverName, server in pairs(db.servers) do
-			if foundName == serverName then
-				found = true
-				break
+
+	function o.discover()
+		local foundNames = {}
+
+		print("API.Discover >> \"*\"")
+		for namespace in o.api.discover("*") do
+			print(string.format("found namespace \"%s\"", namespace))
+			foundNames[namespace] = o.servers[namespace] or false
+		end
+
+		if #foundNames == 0 then
+			print("No servers responded in time.")
+			o.servers = {}
+			return false
+		end
+
+		for serverName, server in pairs(o.servers) do -- remove servers known that aren't found
+			local found = false
+			for foundName, foundServer in pairs(foundNames) do
+				if foundName == serverName then
+					found = true
+					break
+				end
+			end
+			if not found then
+				o.servers[serverName] = nil
 			end
 		end
-		if not found then
-			db.servers[foundName] = dbServer.new(foundName)
+
+		for foundName, foundServer in pairs(foundNames) do -- add servers aren't known that are found
+			local found = false
+			for serverName, server in pairs(o.servers) do
+				if foundName == serverName then
+					found = true
+					break
+				end
+			end
+			if not found then
+				o.servers[foundName] = storageServer.new(foundName)
+			end
 		end
+		return true
 	end
-	return true
 end
 
-
-
-return db
+return database
