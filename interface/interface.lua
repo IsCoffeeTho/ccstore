@@ -4,7 +4,11 @@ local interface = {}
 
 ---@param db database
 function interface.wrap(db)
-	local function log(text)
+	---@class interface
+	o = {}
+	
+	
+	function o.log(text)
 		print(text)
 		imui.print(text)
 	end
@@ -12,14 +16,14 @@ function interface.wrap(db)
 	function o.boot()
 		imui.background()
 
-		log("Sending wakeup...")
+		o.log("Sending wakeup...")
 		db.wakeLAN()
 
-		log("Discovering storage systems...")
+		o.log("Discovering storage systems...")
 		if not db.discover() then
 			return imui.error("local namespace discovery failed")
 		end
-		log("Storage System is ready")
+		o.log("Storage System is ready")
 		os.sleep(1)
 		imui.backgroundColor = colors.pink
 		imui.textColor = colors.white
@@ -34,8 +38,7 @@ function interface.wrap(db)
 	
 	o.draw = o.boot
 	
-	---@class interface
-	o = {}
+	return o
 end
 
 return interface
