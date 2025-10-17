@@ -12,6 +12,8 @@ function server.new(o, modem)
 	
 	function o.eventLoop()
 		while true do
+			::continue::
+			os.sleep(0.05)
 			---@type ["modem_message", string, string, integer, boolean|string|number|table, number|nil]
 			---@diagnostic disable-next-line
 			local event = { os.pullEvent("modem_message") }
@@ -19,7 +21,6 @@ function server.new(o, modem)
 			local _, side, channel, replyPort, message, distance = table.unpack(event)
 			if channel ~= o.port then
 				os.queueEvent(table.unpack(event))
-				os.sleep(0.05)
 				goto continue
 			end
 	
@@ -32,7 +33,6 @@ function server.new(o, modem)
 					status = responses.code.MALFORMED_REQUEST,
 					msgid = "",
 				}))
-				os.sleep(0.05)
 				goto continue
 			end
 			---@class ccStore.Server.Request.Discover: ccStore.Request, ccStore.RequestMessage.Discover
@@ -72,8 +72,6 @@ function server.new(o, modem)
 			request.event = event
 			
 			table.insert(requestQueue, request)
-			::continue::
-			os.sleep(0.05)
 		end
 	end
 	
