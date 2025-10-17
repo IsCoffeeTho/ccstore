@@ -182,26 +182,30 @@ print("Serving @", config.namespace)
 
 redstone.setOutput("top", true)
 
-while true do
-	local req = server.recv()
-	local res = req.response
-	if req.operation == "discover" then
-		local successful, err = pcall(handleDiscover, req, res)
-		if not successful then
-			if not res.sent then
-				res.status = ccstoreAPI.code.ERROR
-				res.send("Internal Server Error")
+local function main()
+	while true do
+		local req = server.recv()
+		local res = req.response
+		if req.operation == "discover" then
+			local successful, err = pcall(handleDiscover, req, res)
+			if not successful then
+				if not res.sent then
+					res.status = ccstoreAPI.code.ERROR
+					res.send("Internal Server Error")
+				end
+				print(err)
 			end
-			print(err)
-		end
-	elseif req.namespace == config.namespace then
-		local successful, err = pcall(handleRequest, req, res)
-		if not successful then
-			if not res.sent then
-				res.status = ccstoreAPI.code.ERROR
-				res.send("Internal Server Error")
+		elseif req.namespace == config.namespace then
+			local successful, err = pcall(handleRequest, req, res)
+			if not successful then
+				if not res.sent then
+					res.status = ccstoreAPI.code.ERROR
+					res.send("Internal Server Error")
+				end
+				print(err)
 			end
-			print(err)
 		end
 	end
 end
+
+parallel.waitForAny(main, server.eventLoop)

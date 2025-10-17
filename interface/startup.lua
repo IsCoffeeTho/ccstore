@@ -14,16 +14,28 @@ if not imui.init() then
 	return
 end
 
+---@type ccTweaked.peripheral.WiredModem
+---@diagnostic disable-next-line
+local modem = peripheral.wrap("back")
+
+local db = require("db")
+
+db.wrap(modem)
+
 local function main()
-	local interface = require("interface")
-	print("Running interface daemon")
-	while true do
-		interface.draw()
-		imui.await()
+	local function interface_main()
+		local interface = require("interface")
+		print("Running interface daemon")
+		while true do
+			interface.draw()
+			imui.await()
+		end
+	end
+	
+	local worked, error = pcall(interface_main)
+	if not worked then
+		imui.error(error, "Unhandled exception; check console")
 	end
 end
 
-local worked, error = pcall(main)
-if not worked then
-	imui.error(error, "Unhandled exception; check console")
-end
+parallel.waitForAny(main, db.api.eventLoop)

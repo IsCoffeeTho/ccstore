@@ -7,14 +7,6 @@ function os.halt()
 	end
 end
 
----@type ccTweaked.peripheral.WiredModem
----@diagnostic disable-next-line
-local modem = peripheral.wrap("back")
-
-local db = require("db")
-
-db.wrap(modem)
-
 local interface = {}
 
 local function log(text)
