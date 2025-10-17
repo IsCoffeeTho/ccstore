@@ -76,6 +76,8 @@ function database.wrap(modem)
 		end
 		return true
 	end
+	
+	return o
 end
 
 return database
