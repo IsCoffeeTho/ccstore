@@ -36,14 +36,16 @@ function interface.splash()
 	if not db.discover() then
 		return imui.error("local namespace discovery failed")
 	end
-
 	log("Storage System is ready")
 	os.sleep(1)
+	imui.backgroundColor = colors.pink
+	imui.textColor = colors.white
 	interface.draw = interface.refresh
 end
 
 function interface.refresh()
-
+	imui.background()
+	imui.print("STORAGE SYSTEM")
 end
 
 interface.draw = interface.splash
