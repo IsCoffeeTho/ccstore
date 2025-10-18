@@ -33,6 +33,7 @@ function storageAPI.wrap(modem, intermediate)
 		}
 
 		local function removeFromItemIndex()
+			if storage.itemIndex[o.itemId] == nil then return end
 			local newItemIndex = {}
 			for i, slot in ipairs(storage.itemIndex[o.itemId]) do
 				if slot ~= o then
