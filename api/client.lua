@@ -36,6 +36,9 @@ function client.new(modem, port, requestTimeout, responseTimeout)
 					if waitingQueue[response.msgid] ~= nil then
 						waitingQueue[response.msgid] = nil
 						responseQueue[response.msgid] = response
+					elseif acknowledgedQueue[response.msgid] ~= nil then
+						acknowledgedQueue[response.msgid] = nil
+						responseQueue[response.msgid] = response
 					end
 				end
 			end
