@@ -5,19 +5,23 @@ local client = {}
 
 ---@param modem ccTweaked.peripheral.WiredModem
 ---@param port? integer Port that the API is using
----@param timeout? integer Time in seconds to wait for a response
-function client.new(modem, port, timeout)
+---@param requestTimeout? integer Time in seconds to wait for a response
+---@param responseTimeout? integer Time in seconds to wait after an acknowledgement for a response
+function client.new(modem, port, requestTimeout, responseTimeout)
 	port = port or 1000
-	timeout = timeout or 2.5
+	requestTimeout = requestTimeout or 2.5
+	responseTimeout = responseTimeout or 60
 
 	---@class ccStore.client
 	local o = {
 		code = responses.code
 	}
 
-	
 	---@type ccStore.QueuedRequest[]
 	local waitingQueue = {}
+	---@type ccStore.QueuedRequest[]
+	local acknowledgedQueue = {}
+	---@type ccStore.Response[]
 	local responseQueue = {}
 
 	---@async
@@ -49,14 +53,14 @@ function client.new(modem, port, timeout)
 		message.port = math.random(10000, 19999)
 		message.msgid = requests.genMsgID()
 		modem.open(message.port)
-		
+
 		---@type ccStore.Response
 		local response = {
 			status = responses.code.ERROR,
 			msgid = message.msgid,
-			body = "",
+			body = "CLIENT ERROR",
 		}
-		
+
 		waitingQueue[message.msgid] = message
 
 		parallel.waitForAny(
@@ -67,10 +71,11 @@ function client.new(modem, port, timeout)
 				end
 				response = responseQueue[message.msgid]
 				responseQueue[message.msgid] = nil
+				if response.status ~= responses.code.ACK then return end
+				acknowledgedQueue[message.msgid] = message
 			end,
 			function()
-				os.sleep(timeout)
-				modem.close(message.port)
+				os.sleep(requestTimeout)
 				response = {
 					status = responses.code.REQUEST_TIMEOUT,
 					msgid = message.msgid,
@@ -78,11 +83,32 @@ function client.new(modem, port, timeout)
 				}
 			end
 		)
+		if acknowledgedQueue[message.msgid] then
+			parallel.waitForAny(
+				function()
+					while not responseQueue[message.msgid] do
+						os.sleep(0.05)
+					end
+					response = responseQueue[message.msgid]
+					responseQueue[message.msgid] = nil
+				end,
+				function()
+					os.sleep(responseTimeout)
+					response = {
+						status = responses.code.REQUEST_TIMEOUT,
+						msgid = message.msgid,
+						body = "REQUEST TIMEOUT",
+					}
+				end
+			)
+		end
+		
+		modem.close(message.port)
 		return response
 	end
 
 	---@param namespace? string
-	function o.discover(namespace, port, timeout, timeoutCount)
+	function o.discover(namespace)
 		local function emptyIterator() return nil end
 
 		local res = o.request({

@@ -37,7 +37,7 @@ function storageAPI.wrap(modem, intermediate)
 			local newItemIndex = {}
 			for i, slot in ipairs(storage.itemIndex[o.itemId]) do
 				if slot ~= o then
-					newItemIndex:insert(slot)
+					table.insert(newItemIndex, slot)
 				end
 			end
 			storage.itemIndex[o.itemId] = newItemIndex
