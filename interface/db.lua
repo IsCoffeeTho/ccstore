@@ -41,7 +41,7 @@ function database.wrap(modem)
 		print("API.Discover >> \"*\"")
 		for namespace in o.api.discover("*") do
 			print(string.format("found namespace \"%s\"", namespace))
-			foundNames[namespace] = o.servers[namespace] or false
+			foundNames:insert(namespace)
 		end
 
 		if #foundNames == 0 then
@@ -52,7 +52,7 @@ function database.wrap(modem)
 
 		for serverName, server in pairs(o.servers) do -- remove servers known that aren't found
 			local found = false
-			for foundName, foundServer in pairs(foundNames) do
+			for _,foundName in ipairs(foundNames) do
 				if foundName == serverName then
 					found = true
 					break
@@ -63,7 +63,7 @@ function database.wrap(modem)
 			end
 		end
 
-		for foundName, foundServer in pairs(foundNames) do -- add servers aren't known that are found
+		for _, foundName in ipairs(foundNames) do -- add servers aren't known that are found
 			local found = false
 			for serverName, server in pairs(o.servers) do
 				if foundName == serverName then

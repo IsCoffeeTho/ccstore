@@ -2,6 +2,7 @@ local imui = require("imui")
 
 function os.halt()
 	::halt_loop::
+	os.sleep(0.05)
 	goto halt_loop
 end
 
@@ -22,7 +23,7 @@ local databaseAPI = require("db")
 local db = databaseAPI.wrap(modem)
 
 local function main()
-	local function interface_main()
+	local function pMain()
 		local interfaceSys = require("interface")
 		local interface = interfaceSys.wrap(db)
 		if interface == nil then
@@ -40,9 +41,9 @@ local function main()
 		end
 	end
 	
-	local worked, error = pcall(interface_main)
+	local worked, error = pcall(pMain)
 	if not worked then
-		imui.error(error, "Unhandled exception; check console")
+		imui.error(error)
 		os.halt()
 	end
 end

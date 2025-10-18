@@ -8,7 +8,6 @@ local lastTouch = {
 }
 
 local imui = {
-	awaitingButtons = false,
 	backgroundColor = colors.black,
 	textColor = colors.white,
 	buttonColor = colors.gray,
@@ -91,11 +90,11 @@ function imui.print(text)
 end
 
 function imui.await()
-	local timeout = os.startTimer(0.05)
+	local timeout = os.startTimer(0.5)
 	while true do
 		local ev = { os.pullEvent() }
 		local evName = ev[1]
-		if evName == "monitor_touch" and imui.awaitingButtons then
+		if evName == "monitor_touch" then
 			local _, _, x, y = table.unpack(ev)
 			lastTouch = { x = x, y = y }
 			break
@@ -107,23 +106,18 @@ function imui.await()
 		end
 		os.queueEvent(table.unpack(ev))
 	end
-	imui.awaitingButtons = false
 end
 
 ---Function doesn't return but there is no @noreturn
 ---@param err any
----@param errorMessage? string
-function imui.error(err, errorMessage)
-	if type(err) == "string" then
-		errorMessage = errorMessage or err
-	end
-	errorMessage = errorMessage or "Unknown; Check console"
-	print("ERROR:", err)
+function imui.error(err)
+	err = err or "Unknown; Check console"
+	print("ERR:", err)
 	imui.backgroundColor = colors.blue
 	imui.textColor = colors.white
 	imui.background()
 	imui.text(1, 1, "CRITICAL ERROR:")
-	imui.text(1, 2, errorMessage)
+	imui.text(1, 2, err)
 	os.halt()
 end
 
