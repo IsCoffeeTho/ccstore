@@ -41,7 +41,7 @@ function database.wrap(modem)
 		print("API.Discover >> \"*\"")
 		for namespace in o.api.discover("*") do
 			print(string.format("found namespace \"%s\"", namespace))
-			foundNames:insert(namespace)
+			table.insert(foundNames, namespace)
 		end
 
 		if #foundNames == 0 then

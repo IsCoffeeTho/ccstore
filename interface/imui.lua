@@ -86,7 +86,11 @@ end
 
 ---@param text string
 function imui.print(text)
-	mon.write(text.."\n")
+	for line in string.gmatch(text, "[^\n]+") do
+		mon.write(line)
+		local x, y = mon.getCursorPos()
+		mon.setCursorPos(1,y + 1)
+	end
 end
 
 function imui.await()
