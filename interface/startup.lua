@@ -1,15 +1,26 @@
 local imui = require("imui")
 
-function os.halt()
-	::halt_loop::
-	os.sleep(0.05)
-	goto halt_loop
+local exitCode = 0
+local exitProgram = false
+
+---@param code? integer
+---@diagnostic disable-next-line
+function os.exit(code)
+	code = code or 0
+	exitCode = code
+	exitProgram = true
+end
+
+function os.eventLoop()
+	while not exitProgram do
+		os.sleep(0.05)
+	end
 end
 
 term.clear()
 term.setCursorPos(1,1)
 
-if not imui.init() then
+if imui.mon == nil then
 	print("No monitor is attached, exiting...")
 	return
 end
@@ -34,7 +45,7 @@ local function main()
 		while true do
 			if interface.draw == nil then
 				error("interface.draw was set to a nil value")
-				return
+				os.exit(1)
 			end
 			interface.draw()
 			imui.await()
@@ -44,8 +55,10 @@ local function main()
 	local worked, error = pcall(pMain)
 	if not worked then
 		imui.error(error)
-		os.halt()
+		os.exit(1)
 	end
 end
 
-parallel.waitForAny(main, db.api.eventLoop)
+parallel.waitForAny(main, db.api.eventLoop, os.eventLoop)
+
+return exitCode

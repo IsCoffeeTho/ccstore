@@ -15,8 +15,7 @@ function storageServer.new(namespace)
 	return o
 end
 
-local database = {
-}
+local database = {}
 
 ---@param modem ccTweaked.peripheral.WiredModem
 function database.wrap(modem)
@@ -50,34 +49,34 @@ function database.wrap(modem)
 			return false
 		end
 
-		for serverName, server in pairs(o.servers) do -- remove servers known that aren't found
-			local found = false
-			for _,foundName in ipairs(foundNames) do
-				if foundName == serverName then
-					found = true
+		for knownServer, _ in pairs(o.servers) do -- remove servers known that aren't found
+			local known = false
+			for _, foundServer in ipairs(foundNames) do
+				if foundServer == knownServer then
+					known = true
 					break
 				end
 			end
-			if not found then
-				o.servers[serverName] = nil
+			if not known then
+				o.servers[knownServer] = nil
 			end
 		end
 
-		for _, foundName in ipairs(foundNames) do -- add servers aren't known that are found
-			local found = false
-			for serverName, server in pairs(o.servers) do
-				if foundName == serverName then
-					found = true
+		for _, foundServer in ipairs(foundNames) do -- add servers aren't known that are found
+			local serverUnknown = false
+			for knownServer, server in pairs(o.servers) do
+				if foundServer == knownServer then
+					serverUnknown = true
 					break
 				end
 			end
-			if not found then
+			if not serverUnknown then
 				o.servers[foundName] = storageServer.new(foundName)
 			end
 		end
 		return true
 	end
-	
+
 	return o
 end
 

@@ -7,7 +7,6 @@ function interface.wrap(db)
 	---@class interface
 	o = {}
 	
-	
 	function o.log(text)
 		print(text)
 		imui.print(text)
@@ -25,15 +24,15 @@ function interface.wrap(db)
 		end
 		o.log("Storage System is ready")
 		os.sleep(1)
-		imui.backgroundColor = colors.pink
-		imui.textColor = colors.white
 		o.draw = o.splash
 	end
 	
 	function o.splash()
+		imui.backgroundColor = colors.pink
+		imui.textColor = colors.white
 		imui.background()
 		imui.print("STORAGE SYSTEM")
-		os.halt()
+		os.exit()
 	end
 	
 	o.draw = o.boot
